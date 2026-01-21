@@ -47,13 +47,13 @@ class ImageGenerationService: ObservableObject {
             }
         }
 
-        // Determine which backend to use
-        if aiBackend.isSwarmUIAvailable {
-            return try await generateWithSwarmUI(prompt: prompt, style: style, size: size)
-        } else if aiBackend.isComfyUIAvailable {
+        // Determine which backend to use (prefer ComfyUI as most reliable)
+        if aiBackend.isComfyUIAvailable {
             return try await generateWithComfyUI(prompt: prompt, style: style, size: size)
         } else if aiBackend.isAutomatic1111Available {
             return try await generateWithAutomatic1111(prompt: prompt, style: style, size: size)
+        } else if aiBackend.isSwarmUIAvailable {
+            return try await generateWithSwarmUI(prompt: prompt, style: style, size: size)
         } else {
             throw ImageGenerationError.noBackendAvailable
         }
@@ -138,9 +138,164 @@ class ImageGenerationService: ObservableObject {
 
         await updateProgress(0.1)
 
-        // ComfyUI workflow would be more complex
-        // For now, return placeholder
-        throw ImageGenerationError.notImplemented("ComfyUI integration coming soon")
+        let enhancedPrompt = enhancePrompt(prompt, style: style)
+
+        // ComfyUI uses workflow-based API
+        // Create a simple text2img workflow
+        let workflow: [String: Any] = [
+            "3": [
+                "inputs": [
+                    "seed": Int.random(in: 0...999999999),
+                    "steps": 20,
+                    "cfg": 7.0,
+                    "sampler_name": "euler",
+                    "scheduler": "normal",
+                    "denoise": 1.0,
+                    "model": ["4", 0],
+                    "positive": ["6", 0],
+                    "negative": ["7", 0],
+                    "latent_image": ["5", 0]
+                ],
+                "class_type": "KSampler"
+            ],
+            "4": [
+                "inputs": [
+                    "ckpt_name": "sd_xl_base_1.0.safetensors"
+                ],
+                "class_type": "CheckpointLoaderSimple"
+            ],
+            "5": [
+                "inputs": [
+                    "width": size.width,
+                    "height": size.height,
+                    "batch_size": 1
+                ],
+                "class_type": "EmptyLatentImage"
+            ],
+            "6": [
+                "inputs": [
+                    "text": enhancedPrompt,
+                    "clip": ["4", 1]
+                ],
+                "class_type": "CLIPTextEncode"
+            ],
+            "7": [
+                "inputs": [
+                    "text": "text, watermark, blurry, low quality, distorted",
+                    "clip": ["4", 1]
+                ],
+                "class_type": "CLIPTextEncode"
+            ],
+            "8": [
+                "inputs": [
+                    "samples": ["3", 0],
+                    "vae": ["4", 2]
+                ],
+                "class_type": "VAEDecode"
+            ],
+            "9": [
+                "inputs": [
+                    "filename_prefix": "ExcelExplorer",
+                    "images": ["8", 0]
+                ],
+                "class_type": "SaveImage"
+            ]
+        ]
+
+        // Submit workflow
+        guard let url = URL(string: "\(aiBackend.comfyUIServerURL)/prompt") else {
+            throw ImageGenerationError.invalidURL
+        }
+
+        let requestBody: [String: Any] = [
+            "prompt": workflow,
+            "client_id": UUID().uuidString
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        request.timeoutInterval = 120.0
+
+        await updateProgress(0.3)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ImageGenerationError.invalidResponse
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            // Try to get error details from response
+            if let errorDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let error = errorDict["error"] as? [String: Any],
+               let message = error["message"] as? String {
+                print("ComfyUI Error Details: \(message)")
+            } else if let errorString = String(data: data, encoding: .utf8) {
+                print("ComfyUI Error Response: \(errorString)")
+            }
+            throw ImageGenerationError.httpError(httpResponse.statusCode)
+        }
+
+        // Parse response to get prompt ID
+        struct ComfyPromptResponse: Codable {
+            let prompt_id: String
+        }
+
+        let promptResponse = try JSONDecoder().decode(ComfyPromptResponse.self, from: data)
+
+        // Wait for image generation (poll for completion)
+        await updateProgress(0.5)
+
+        var attempts = 0
+        while attempts < 60 { // Wait up to 60 seconds
+            try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+
+            // Check history for our prompt
+            guard let historyURL = URL(string: "\(aiBackend.comfyUIServerURL)/history/\(promptResponse.prompt_id)") else {
+                throw ImageGenerationError.invalidURL
+            }
+
+            let (historyData, _) = try await URLSession.shared.data(from: historyURL)
+
+            if let historyDict = try? JSONSerialization.jsonObject(with: historyData) as? [String: Any],
+               let promptHistory = historyDict[promptResponse.prompt_id] as? [String: Any],
+               let outputs = promptHistory["outputs"] as? [String: Any],
+               let saveImageOutput = outputs["9"] as? [String: Any],
+               let images = saveImageOutput["images"] as? [[String: Any]],
+               let firstImage = images.first,
+               let filename = firstImage["filename"] as? String {
+
+                // Download the image
+                guard let imageURL = URL(string: "\(aiBackend.comfyUIServerURL)/view?filename=\(filename)&subfolder=&type=output") else {
+                    throw ImageGenerationError.invalidURL
+                }
+
+                await updateProgress(0.9)
+
+                let (imageData, _) = try await URLSession.shared.data(from: imageURL)
+
+                guard let image = NSImage(data: imageData) else {
+                    throw ImageGenerationError.noImageGenerated
+                }
+
+                await updateProgress(1.0)
+
+                // Save to generated images
+                let generated = GeneratedImage(image: image, prompt: prompt, style: style, backend: "ComfyUI")
+                await MainActor.run {
+                    generatedImages.insert(generated, at: 0)
+                }
+
+                return image
+            }
+
+            attempts += 1
+            await updateProgress(0.5 + (Double(attempts) / 120.0)) // Show progress
+        }
+
+        throw ImageGenerationError.timeout
     }
 
     // MARK: - Automatic1111 Implementation
@@ -300,6 +455,7 @@ enum ImageGenerationError: LocalizedError {
     case httpError(Int)
     case noImageGenerated
     case notImplemented(String)
+    case timeout
 
     var errorDescription: String? {
         switch self {
@@ -309,6 +465,8 @@ enum ImageGenerationError: LocalizedError {
             return "Invalid backend URL configuration"
         case .invalidResponse:
             return "Received invalid response from image backend"
+        case .timeout:
+            return "Image generation timed out after 60 seconds. The backend may be busy or the prompt may be too complex."
         case .httpError(let code):
             return "HTTP error \(code) from image backend"
         case .noImageGenerated:
