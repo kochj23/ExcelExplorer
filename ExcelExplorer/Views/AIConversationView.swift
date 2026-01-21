@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AIConversationView: View {
     @EnvironmentObject var dataManager: ExcelDataManager
-    @EnvironmentObject var aiManager: AIBackendManager
+    @ObservedObject var aiManager = AIBackendManager.shared
     @StateObject private var analyzer = AIDataAnalyzer()
 
     @State private var messages: [ChatMessage] = []
@@ -18,14 +18,39 @@ struct AIConversationView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // Header with AI Status
             HStack {
-                Image(systemName: "brain.head.profile")
-                    .font(.title2)
-                    .foregroundStyle(.cyan)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "brain.head.profile")
+                            .font(.title2)
+                            .foregroundStyle(.cyan)
 
-                Text("AI Data Analysis")
-                    .font(.headline)
+                        Text("AI Data Analysis")
+                            .font(.headline)
+                    }
+
+                    // AI Status
+                    HStack(spacing: 8) {
+                        if aiManager.isOllamaAvailable || aiManager.isMLXAvailable ||
+                           aiManager.isTinyLLMAvailable || aiManager.isTinyChatAvailable ||
+                           aiManager.isOpenWebUIAvailable {
+                            Circle()
+                                .fill(Color.green)
+                                .frame(width: 8, height: 8)
+                            Text("AI: \(aiManager.activeBackend.rawValue)")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                        } else {
+                            Circle()
+                                .fill(Color.orange)
+                                .frame(width: 8, height: 8)
+                            Text("AI Not Available")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        }
+                    }
+                }
 
                 Spacer()
 

@@ -9,37 +9,47 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var dataManager: ExcelDataManager
+    @ObservedObject var aiManager = AIBackendManager.shared
     @State private var showAIPanel = true
     @State private var showChartsPanel = false
     @State private var showSettings = false
+    @State private var showAISettings = false
 
     var body: some View {
-        HSplitView {
-            // Main spreadsheet view
-            VStack(spacing: 0) {
-                if let workbook = dataManager.workbook {
-                    // Formula bar
-                    FormulaBar()
-                        .frame(height: 40)
+        VStack(spacing: 0) {
+            // AI Status Header
+            AIStatusHeader(showAISettings: $showAISettings)
 
-                    // Spreadsheet grid
-                    SpreadsheetGridView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Divider()
 
-                    // Sheet tabs at bottom
-                    SheetTabBar()
-                        .frame(height: 40)
-                } else {
-                    // Welcome screen
-                    WelcomeView()
+            // Main Content
+            HSplitView {
+                // Main spreadsheet view
+                VStack(spacing: 0) {
+                    if let workbook = dataManager.workbook {
+                        // Formula bar
+                        FormulaBar()
+                            .frame(height: 40)
+
+                        // Spreadsheet grid
+                        SpreadsheetGridView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                        // Sheet tabs at bottom
+                        SheetTabBar()
+                            .frame(height: 40)
+                    } else {
+                        // Welcome screen
+                        WelcomeView()
+                    }
                 }
-            }
-            .frame(minWidth: 600)
+                .frame(minWidth: 600)
 
-            // AI conversation panel (right sidebar)
-            if showAIPanel {
-                AIConversationView()
-                    .frame(width: 400)
+                // AI conversation panel (right sidebar)
+                if showAIPanel {
+                    AIConversationView()
+                        .frame(width: 400)
+                }
             }
         }
         .toolbar {
@@ -65,6 +75,10 @@ struct ContentView: View {
 
                 Divider()
 
+                Button(action: { showAISettings.toggle() }) {
+                    Label("AI Config", systemImage: "cpu")
+                }
+
                 Button(action: { showSettings.toggle() }) {
                     Label("Settings", systemImage: "gear")
                 }
@@ -72,6 +86,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+        }
+        .sheet(isPresented: $showAISettings) {
+            AIBackendSelectionView()
         }
         .onReceive(NotificationCenter.default.publisher(for: .openFile)) { _ in
             openFile()
@@ -173,5 +190,54 @@ struct FeatureRow: View {
 
             Spacer()
         }
+    }
+}
+
+// MARK: - AI Status Header
+struct AIStatusHeader: View {
+    @ObservedObject var aiManager = AIBackendManager.shared
+    @Binding var showAISettings: Bool
+
+    var body: some View {
+        HStack {
+            // App title and AI status
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Excel Explorer")
+                    .font(.headline)
+
+                HStack(spacing: 8) {
+                    if aiManager.isOllamaAvailable || aiManager.isMLXAvailable ||
+                       aiManager.isTinyLLMAvailable || aiManager.isTinyChatAvailable ||
+                       aiManager.isOpenWebUIAvailable {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 8, height: 8)
+                        Text("AI: \(aiManager.activeBackend.rawValue)")
+                            .font(.caption)
+                            .foregroundColor(.green)
+                    } else {
+                        Circle()
+                            .fill(Color.orange)
+                            .frame(width: 8, height: 8)
+                        Text("AI Not Available")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                    }
+                }
+            }
+
+            Spacer()
+
+            // AI Config button
+            Button(action: { showAISettings.toggle() }) {
+                Label("AI Config", systemImage: "cpu")
+                    .font(.caption)
+            }
+            .buttonStyle(.borderless)
+            .help("Configure AI backends")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color(nsColor: .controlBackgroundColor))
     }
 }
