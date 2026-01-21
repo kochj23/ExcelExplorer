@@ -101,7 +101,7 @@ extension AIBackendManager {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-        request.timeoutInterval = 60.0
+        request.timeoutInterval = 120.0
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -154,7 +154,7 @@ extension AIBackendManager {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-        request.timeoutInterval = 60.0
+        request.timeoutInterval = 120.0
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -201,7 +201,7 @@ extension AIBackendManager {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-        request.timeoutInterval = 60.0
+        request.timeoutInterval = 120.0
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
@@ -260,7 +260,7 @@ extension AIBackendManager {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-        request.timeoutInterval = 60.0
+        request.timeoutInterval = 120.0
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
