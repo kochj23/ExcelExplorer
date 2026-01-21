@@ -28,6 +28,13 @@
 - 📊 **Smart Chart Suggestions** - AI recommends the best chart type for your data
 - 💡 **Column Explanations** - Understand what each column represents
 
+### Advanced AI Features (v1.1+)
+- 📊 **Predictive Analytics Dashboard** - Time series forecasting with confidence intervals, trend analysis, and seasonal patterns
+- 🔄 **Smart Pivot Table Builder** - Create pivot tables from natural language ("Show total sales by region")
+- 🔗 **Data Relationship Discovery** - Automatically find foreign keys, correlations, and dependencies across sheets
+- 🎤 **Voice Commands** - Control spreadsheet with voice ("Go to Sheet 2", "Sum column B")
+- 😊 **Sentiment Analysis** - Analyze text columns for sentiment, extract themes, generate insights
+
 ### Modern Interface
 - 🎨 **Modern SwiftUI Design** - Clean, intuitive macOS-native interface
 - 🔭 **Zoom Controls** - Adjust view from 50% to 200%
@@ -131,6 +138,7 @@ Excel Explorer supports multiple AI backends:
 | `⌘E` | Export |
 | `⌘I` | Toggle AI Panel |
 | `⇧⌘A` | Analyze Data |
+| `⇧⌘B` | **Advanced AI Features** ⭐ |
 | `⌘,` | Settings |
 | `⌘Q` | Quit |
 

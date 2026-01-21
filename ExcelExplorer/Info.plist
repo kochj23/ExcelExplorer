@@ -26,6 +26,10 @@
 	<string>NSApplication</string>
 	<key>NSMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Excel Explorer needs microphone access to enable voice commands for controlling the spreadsheet.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Excel Explorer uses speech recognition to allow you to control spreadsheets with voice commands.</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

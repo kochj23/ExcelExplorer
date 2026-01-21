@@ -24,6 +24,7 @@ extension Notification.Name {
     static let generateChart = Notification.Name("generateChart")
     static let findPatterns = Notification.Name("findPatterns")
     static let predictValues = Notification.Name("predictValues")
+    static let showAdvancedAI = Notification.Name("showAdvancedAI")
 
     // Data updates
     static let sheetChanged = Notification.Name("sheetChanged")

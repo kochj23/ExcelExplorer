@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var showChartsPanel = false
     @State private var showSettings = false
     @State private var showAISettings = false
+    @State private var showAdvancedAI = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -79,6 +80,10 @@ struct ContentView: View {
                     Label("AI Config", systemImage: "cpu")
                 }
 
+                Button(action: { showAdvancedAI.toggle() }) {
+                    Label("Advanced AI", systemImage: "brain")
+                }
+
                 Button(action: { showSettings.toggle() }) {
                     Label("Settings", systemImage: "gear")
                 }
@@ -89,6 +94,10 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showAISettings) {
             AIBackendSelectionView()
+        }
+        .sheet(isPresented: $showAdvancedAI) {
+            AdvancedAIFeaturesView()
+                .environmentObject(dataManager)
         }
         .onReceive(NotificationCenter.default.publisher(for: .openFile)) { _ in
             openFile()
@@ -101,6 +110,9 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .toggleChartsPanel)) { _ in
             showChartsPanel.toggle()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .showAdvancedAI)) { _ in
+            showAdvancedAI.toggle()
         }
     }
 

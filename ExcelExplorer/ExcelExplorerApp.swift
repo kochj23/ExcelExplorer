@@ -62,6 +62,13 @@ struct ExcelExplorerApp: App {
             }
 
             CommandMenu("AI") {
+                Button("Advanced AI Features...") {
+                    NotificationCenter.default.post(name: .showAdvancedAI, object: nil)
+                }
+                .keyboardShortcut("b", modifiers: [.command, .shift])
+
+                Divider()
+
                 Button("Analyze Data") {
                     NotificationCenter.default.post(name: .analyzeData, object: nil)
                 }
