@@ -11,6 +11,7 @@ struct AIConversationView: View {
     @EnvironmentObject var dataManager: ExcelDataManager
     @ObservedObject var aiManager = AIBackendManager.shared
     @StateObject private var analyzer = AIDataAnalyzer()
+    @StateObject private var imageService = ImageGenerationService()
 
     @State private var messages: [ChatMessage] = []
     @State private var inputText: String = ""
@@ -287,23 +288,73 @@ struct AIConversationView: View {
 
                 // Step 3: Generate data visualization image
                 let imagePrompt = """
-                Create a professional data visualization infographic showing:
+                Create a professional data visualization infographic with these exact specifications:
 
-                Summary: \(summary)
+                Title: Data Summary Visualization
 
-                Chart Type: \(chartSuggestion.chartType)
-                Data: \(sheet.headers.joined(separator: ", "))
+                Content to Display:
+                \(summary)
 
-                Style: Modern, clean, business-appropriate with clear labels and data points.
+                Chart Type: \(chartSuggestion.chartType.capitalized) chart
+
+                Style Requirements:
+                - Modern, clean design with white background
+                - Clear labels and legible text
+                - Business-appropriate color scheme (blues, greens, purples)
+                - Professional infographic style
+                - Data points clearly labeled
+                - Grid lines if applicable
+                - Title at top
+                - Legend if needed
+
+                Format: High-quality infographic suitable for presentations
                 """
 
                 await MainActor.run {
-                    let imageMessage = ChatMessage(
-                        content: "🎨 Generating visualization image...\n\nTo generate the actual image, I'll use your configured image generation backend (ComfyUI, Automatic1111, or SwarmUI).\n\nImage prompt: \(imagePrompt)",
+                    let statusMessage = ChatMessage(
+                        content: "🎨 Generating visualization image...",
                         role: .assistant
                     )
-                    messages.append(imageMessage)
-                    isGenerating = false
+                    messages.append(statusMessage)
+                }
+
+                // Actually generate the image
+                if aiManager.isComfyUIAvailable || aiManager.isSwarmUIAvailable || aiManager.isAutomatic1111Available {
+                    do {
+                        let generatedImage = try await imageService.generateImage(
+                            prompt: imagePrompt,
+                            style: .realistic,
+                            size: .square1024
+                        )
+
+                        await MainActor.run {
+                            var imageMessage = ChatMessage(
+                                content: "✅ Visualization created! Click image to save.",
+                                role: .assistant
+                            )
+                            imageMessage.image = generatedImage
+                            messages.append(imageMessage)
+                            isGenerating = false
+                        }
+                    } catch {
+                        await MainActor.run {
+                            let errorMessage = ChatMessage(
+                                content: "❌ Could not generate image: \(error.localizedDescription)\n\nMake sure ComfyUI, SwarmUI, or Automatic1111 is running. Check AI Config to verify image generation backend status.",
+                                role: .assistant
+                            )
+                            messages.append(errorMessage)
+                            isGenerating = false
+                        }
+                    }
+                } else {
+                    await MainActor.run {
+                        let noBackendMessage = ChatMessage(
+                            content: "⚠️ No image generation backend available.\n\nTo generate visualizations, please install and configure one of:\n• ComfyUI (http://localhost:8188)\n• SwarmUI (http://localhost:7801)\n• Automatic1111 (http://localhost:7860)\n\nCheck AI Config (CPU icon) to verify backend status.",
+                            role: .assistant
+                        )
+                        messages.append(noBackendMessage)
+                        isGenerating = false
+                    }
                 }
 
             } catch {
@@ -323,6 +374,7 @@ struct ChatMessage: Identifiable {
     let content: String
     let role: Role
     let timestamp = Date()
+    var image: NSImage? = nil
 
     enum Role {
         case user
@@ -341,7 +393,7 @@ struct MessageBubble: View {
                 Spacer()
             }
 
-            VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
+            VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 8) {
                 HStack {
                     Text(message.content)
                         .font(.body)
@@ -366,6 +418,19 @@ struct MessageBubble: View {
                         .fill(message.role == .user ? Color.cyan.opacity(0.2) : Color.secondary.opacity(0.1))
                 )
 
+                // Display image if present
+                if let image = message.image {
+                    Image(nsImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: 250)
+                        .cornerRadius(8)
+                        .onTapGesture {
+                            saveImage(image)
+                        }
+                        .help("Click to save image")
+                }
+
                 Text(message.timestamp, style: .time)
                     .font(.caption2)
                     .foregroundColor(.secondary)
@@ -385,6 +450,20 @@ struct MessageBubble: View {
         showingCopied = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             showingCopied = false
+        }
+    }
+
+    private func saveImage(_ image: NSImage) {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.png]
+        panel.nameFieldStringValue = "DataVisualization_\(Date().formatted(date: .numeric, time: .omitted)).png"
+
+        if panel.runModal() == .OK, let url = panel.url {
+            if let tiffData = image.tiffRepresentation,
+               let bitmapImage = NSBitmapImageRep(data: tiffData),
+               let pngData = bitmapImage.representation(using: .png, properties: [:]) {
+                try? pngData.write(to: url)
+            }
         }
     }
 }
