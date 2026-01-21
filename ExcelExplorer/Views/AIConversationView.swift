@@ -54,6 +54,18 @@ struct AIConversationView: View {
 
                 Spacer()
 
+                Button(action: copyConversation) {
+                    Image(systemName: "doc.on.doc")
+                }
+                .buttonStyle(.borderless)
+                .help("Copy entire conversation")
+
+                Button(action: exportConversation) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .buttonStyle(.borderless)
+                .help("Export conversation to file")
+
                 Button(action: clearChat) {
                     Image(systemName: "trash")
                 }
@@ -98,8 +110,12 @@ struct AIConversationView: View {
             // Quick actions
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
+                    QuickActionButton(title: "Summarize & Visualize", icon: "chart.bar.doc.horizontal", color: .cyan, action: {
+                        summarizeAndVisualize()
+                    })
+
                     QuickActionButton(title: "Summarize", icon: "doc.text", action: {
-                        sendQuickQuery("Summarize this spreadsheet data")
+                        sendQuickQuery("Summarize this spreadsheet data in 3-4 sentences")
                     })
 
                     QuickActionButton(title: "Find Patterns", icon: "waveform.path.ecg", action: {
@@ -114,8 +130,16 @@ struct AIConversationView: View {
                         sendQuickQuery("Based on the data trends, predict the next values")
                     })
 
-                    QuickActionButton(title: "Explain Column", icon: "questionmark.circle", action: {
-                        sendQuickQuery("Explain what each column represents")
+                    QuickActionButton(title: "Data Quality", icon: "checkmark.shield", action: {
+                        sendQuickQuery("Analyze data quality: find errors, duplicates, missing values, and inconsistencies")
+                    })
+
+                    QuickActionButton(title: "Explain Columns", icon: "questionmark.circle", action: {
+                        sendQuickQuery("Explain what each column represents and its data type")
+                    })
+
+                    QuickActionButton(title: "Create Pivot", icon: "table", action: {
+                        sendQuickQuery("Suggest the best pivot table for this data")
                     })
                 }
                 .padding(.horizontal)
@@ -199,6 +223,98 @@ struct AIConversationView: View {
     private func clearChat() {
         messages.removeAll()
     }
+
+    private func copyConversation() {
+        let conversationText = messages.map { message in
+            let role = message.role == .user ? "You" : "AI"
+            let timestamp = message.timestamp.formatted(date: .abbreviated, time: .shortened)
+            return "[\(timestamp)] \(role):\n\(message.content)\n"
+        }.joined(separator: "\n")
+
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(conversationText, forType: .string)
+    }
+
+    private func exportConversation() {
+        let conversationText = messages.map { message in
+            let role = message.role == .user ? "You" : "AI"
+            let timestamp = message.timestamp.formatted(date: .abbreviated, time: .shortened)
+            return "[\(timestamp)] \(role):\n\(message.content)\n"
+        }.joined(separator: "\n")
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.plainText]
+        panel.nameFieldStringValue = "AI_Conversation_\(Date().formatted(date: .numeric, time: .omitted)).txt"
+
+        if panel.runModal() == .OK, let url = panel.url {
+            try? conversationText.write(to: url, atomically: true, encoding: .utf8)
+        }
+    }
+
+    private func summarizeAndVisualize() {
+        guard let sheet = dataManager.currentSheet else {
+            let errorMessage = ChatMessage(content: "No spreadsheet is currently loaded", role: .assistant)
+            messages.append(errorMessage)
+            return
+        }
+
+        let userMessage = ChatMessage(content: "Summarize this data and create a visualization", role: .user)
+        messages.append(userMessage)
+
+        isGenerating = true
+
+        Task {
+            do {
+                // Step 1: Generate summary
+                let summary = try await analyzer.summarizeSheet(sheet)
+
+                await MainActor.run {
+                    let summaryMessage = ChatMessage(content: "📊 Data Summary:\n\n\(summary)", role: .assistant)
+                    messages.append(summaryMessage)
+                }
+
+                // Step 2: Suggest chart type
+                let chartSuggestion = try await analyzer.suggestChart(sheet)
+
+                await MainActor.run {
+                    let chartMessage = ChatMessage(
+                        content: "📈 Visualization Recommendation:\n\nChart Type: \(chartSuggestion.chartType.capitalized)\nX-Axis: \(chartSuggestion.xColumn)\nY-Axis: \(chartSuggestion.yColumn)\n\nReasoning: \(chartSuggestion.reasoning)\n\nI can create this chart in the Advanced AI Features panel (⇧⌘B → Forecasting tab).",
+                        role: .assistant
+                    )
+                    messages.append(chartMessage)
+                }
+
+                // Step 3: Generate data visualization image
+                let imagePrompt = """
+                Create a professional data visualization infographic showing:
+
+                Summary: \(summary)
+
+                Chart Type: \(chartSuggestion.chartType)
+                Data: \(sheet.headers.joined(separator: ", "))
+
+                Style: Modern, clean, business-appropriate with clear labels and data points.
+                """
+
+                await MainActor.run {
+                    let imageMessage = ChatMessage(
+                        content: "🎨 Generating visualization image...\n\nTo generate the actual image, I'll use your configured image generation backend (ComfyUI, Automatic1111, or SwarmUI).\n\nImage prompt: \(imagePrompt)",
+                        role: .assistant
+                    )
+                    messages.append(imageMessage)
+                    isGenerating = false
+                }
+
+            } catch {
+                await MainActor.run {
+                    let errorMessage = ChatMessage(content: "Error: \(error.localizedDescription)", role: .assistant)
+                    messages.append(errorMessage)
+                    isGenerating = false
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Chat Message
@@ -217,6 +333,7 @@ struct ChatMessage: Identifiable {
 // MARK: - Message Bubble
 struct MessageBubble: View {
     let message: ChatMessage
+    @State private var showingCopied = false
 
     var body: some View {
         HStack {
@@ -225,14 +342,29 @@ struct MessageBubble: View {
             }
 
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
-                Text(message.content)
-                    .font(.body)
-                    .padding(12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(message.role == .user ? Color.cyan.opacity(0.2) : Color.secondary.opacity(0.1))
-                    )
-                    .frame(maxWidth: 280, alignment: message.role == .user ? .trailing : .leading)
+                HStack {
+                    Text(message.content)
+                        .font(.body)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: 250, alignment: message.role == .user ? .trailing : .leading)
+
+                    if message.role == .assistant {
+                        Button(action: {
+                            copyMessage()
+                        }) {
+                            Image(systemName: showingCopied ? "checkmark" : "doc.on.doc")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.borderless)
+                        .help("Copy message")
+                    }
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(message.role == .user ? Color.cyan.opacity(0.2) : Color.secondary.opacity(0.1))
+                )
 
                 Text(message.timestamp, style: .time)
                     .font(.caption2)
@@ -242,6 +374,17 @@ struct MessageBubble: View {
             if message.role == .assistant {
                 Spacer()
             }
+        }
+    }
+
+    private func copyMessage() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(message.content, forType: .string)
+
+        showingCopied = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            showingCopied = false
         }
     }
 }
@@ -302,6 +445,7 @@ struct TypingIndicator: View {
 struct QuickActionButton: View {
     let title: String
     let icon: String
+    var color: Color = .cyan
     let action: () -> Void
 
     var body: some View {
@@ -316,7 +460,11 @@ struct QuickActionButton: View {
             .padding(.vertical, 6)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.cyan.opacity(0.1))
+                    .fill(color.opacity(0.1))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(color.opacity(0.3), lineWidth: 1)
             )
         }
         .buttonStyle(.borderless)

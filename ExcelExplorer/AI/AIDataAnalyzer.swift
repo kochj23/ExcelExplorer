@@ -16,20 +16,38 @@ class AIDataAnalyzer: ObservableObject {
         let context = PromptBuilder.buildDataContext(sheet: sheet)
 
         let prompt = """
-        You are analyzing an Excel spreadsheet for a user.
+        You are analyzing an Excel spreadsheet for a user in Excel Explorer, a macOS app.
 
         SPREADSHEET DATA:
         \(context)
 
         USER QUERY: \(query)
 
-        Provide a clear, specific answer referencing actual data from the spreadsheet.
-        Be concise but thorough. Use markdown formatting for better readability.
+        IMPORTANT INSTRUCTIONS:
+        - Provide direct answers and insights, NOT code or commands
+        - DO NOT suggest Python, SQL, or programming code
+        - DO NOT say "you can use X command" - just provide the analysis
+        - Reference actual data from the spreadsheet with specific values
+        - If the user asks to create something, describe what it would look like
+        - Use markdown formatting for readability
+        - Be concise but thorough (3-5 sentences)
+
+        Example good responses:
+        ✅ "The data shows sales peaked in March at $45,230, representing a 23% increase..."
+        ✅ "There are 3 duplicate customer entries in rows 45, 67, and 89..."
+        ✅ "Revenue by region: West $234k (40%), East $189k (32%), South $165k (28%)"
+
+        Example bad responses:
+        ❌ "You can use pandas.DataFrame.describe() to analyze this"
+        ❌ "Run: df.groupby('region')['sales'].sum()"
+        ❌ "Execute this SQL query: SELECT * FROM..."
+
+        Provide insights, not instructions.
         """
 
         let response = try await aiManager.generate(
             prompt: prompt,
-            systemPrompt: "You are an expert data analyst helping users understand their spreadsheet data.",
+            systemPrompt: "You are an expert data analyst in Excel Explorer. Provide insights and analysis, never code or commands. You analyze data and provide direct answers.",
             temperature: 0.3,
             maxTokens: 2000
         )
@@ -48,14 +66,20 @@ class AIDataAnalyzer: ObservableObject {
 
         Provide:
         1. Overall summary (2-3 sentences)
-        2. Key metrics and statistics
-        3. Notable patterns or outliers
+        2. Key metrics and statistics with actual values
+        3. Notable patterns or outliers with specific examples
         4. Data quality observations
+
+        IMPORTANT:
+        - Provide direct insights, NOT code suggestions
+        - Reference specific data values from the spreadsheet
+        - Be actionable and clear
+        - NO Python, SQL, or programming references
         """
 
         return try await aiManager.generate(
             prompt: prompt,
-            systemPrompt: "You are an expert data analyst.",
+            systemPrompt: "You are an expert data analyst in Excel Explorer. Provide insights and analysis directly. Never suggest code or commands.",
             temperature: 0.3,
             maxTokens: 1500
         )
@@ -69,16 +93,22 @@ class AIDataAnalyzer: ObservableObject {
 
         \(context)
 
-        Identify:
-        1. Trends over time (if applicable)
-        2. Correlations between columns
-        3. Unusual patterns or anomalies
-        4. Groupings or clusters
+        Identify with specific examples:
+        1. Trends over time (if applicable) - show actual values
+        2. Correlations between columns - provide concrete examples
+        3. Unusual patterns or anomalies - cite specific rows/values
+        4. Groupings or clusters - describe what you found
+
+        IMPORTANT:
+        - Provide actual findings from the data, NOT analysis methods
+        - Reference specific data values and row numbers
+        - NO code suggestions (no Python, pandas, SQL, etc.)
+        - Be direct and actionable
         """
 
         return try await aiManager.generate(
             prompt: prompt,
-            systemPrompt: "You are an expert data scientist specializing in pattern recognition.",
+            systemPrompt: "You are an expert data scientist in Excel Explorer. Provide findings and patterns directly. Never suggest code or programming methods.",
             temperature: 0.3,
             maxTokens: 2000
         )
@@ -95,15 +125,21 @@ class AIDataAnalyzer: ObservableObject {
         \(targetColumn != nil ? "Focus on predicting values for the '\(targetColumn!)' column." : "Identify which columns are suitable for prediction.")
 
         Provide:
-        1. Predicted values (if possible)
-        2. Confidence level
-        3. Reasoning behind predictions
+        1. Predicted values (actual numbers, not formulas)
+        2. Confidence level (percentage)
+        3. Reasoning behind predictions with data references
         4. Limitations and assumptions
+
+        IMPORTANT:
+        - Provide actual predicted values, NOT prediction methods
+        - NO code suggestions (no Python, scikit-learn, etc.)
+        - Give concrete predictions like "Next value: $47,500 (±$3,200)"
+        - Reference the actual data patterns you observed
         """
 
         return try await aiManager.generate(
             prompt: prompt,
-            systemPrompt: "You are an expert in data forecasting and predictive analytics.",
+            systemPrompt: "You are an expert in data forecasting in Excel Explorer. Provide actual predictions and insights, never code or technical methods.",
             temperature: 0.4,
             maxTokens: 2000
         )
