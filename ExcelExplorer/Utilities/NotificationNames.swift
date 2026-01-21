@@ -10,6 +10,7 @@ import Foundation
 extension Notification.Name {
     // File operations
     static let openFile = Notification.Name("openFile")
+    static let openSpecificFile = Notification.Name("openSpecificFile")
     static let saveFile = Notification.Name("saveFile")
     static let exportCSV = Notification.Name("exportCSV")
     static let exportPDF = Notification.Name("exportPDF")

@@ -125,7 +125,7 @@ class VoiceCommandHandler: NSObject, ObservableObject {
         } else if lowercased.contains("export") {
             handleExportCommand(command: lowercased)
         } else if lowercased.contains("open") || lowercased.contains("load") {
-            handleOpenCommand()
+            handleOpenCommand(command: command)
         } else if lowercased.contains("save") {
             handleSaveCommand()
         } else if lowercased.contains("analyze") {
@@ -185,8 +185,148 @@ class VoiceCommandHandler: NSObject, ObservableObject {
         NotificationCenter.default.post(name: .voiceCommandExport, object: format)
     }
 
-    private func handleOpenCommand() {
-        NotificationCenter.default.post(name: .openFile, object: nil)
+    private func handleOpenCommand(command: String) {
+        // Use AI to extract file details from command
+        Task {
+            await openFileFromCommand(command: command)
+        }
+    }
+
+    private func openFileFromCommand(command: String) async {
+        let prompt = """
+        Extract file information from this voice command:
+        "\(command)"
+
+        Respond with ONLY a JSON object:
+        {
+            "filename": "extracted filename or null if not specific",
+            "location": "downloads, desktop, documents, or null",
+            "fileType": "xlsx, csv, xls, or null"
+        }
+
+        Examples:
+        - "open the spreadsheet in downloads" → {"filename": null, "location": "downloads", "fileType": null}
+        - "open sales.xlsx from downloads" → {"filename": "sales.xlsx", "location": "downloads", "fileType": "xlsx"}
+        - "load the file I just saved" → {"filename": null, "location": "downloads", "fileType": null}
+        """
+
+        do {
+            let response = try await aiManager.generate(
+                prompt: prompt,
+                systemPrompt: "Extract file information. Respond ONLY with JSON.",
+                temperature: 0.1,
+                maxTokens: 100
+            )
+
+            if let fileInfo = parseFileInfo(from: response) {
+                await searchAndOpenFile(info: fileInfo)
+            } else {
+                // Fallback to file picker
+                await MainActor.run {
+                    NotificationCenter.default.post(name: .openFile, object: nil)
+                }
+            }
+        } catch {
+            // Fallback to file picker
+            await MainActor.run {
+                NotificationCenter.default.post(name: .openFile, object: nil)
+            }
+        }
+    }
+
+    private func parseFileInfo(from jsonString: String) -> FileInfo? {
+        guard let jsonStart = jsonString.firstIndex(of: "{"),
+              let jsonEnd = jsonString.lastIndex(of: "}") else {
+            return nil
+        }
+
+        let jsonSubstring = jsonString[jsonStart...jsonEnd]
+        let jsonData = Data(jsonSubstring.utf8)
+
+        do {
+            let decoder = JSONDecoder()
+            return try decoder.decode(FileInfo.self, from: jsonData)
+        } catch {
+            print("Error parsing file info: \(error)")
+            return nil
+        }
+    }
+
+    private func searchAndOpenFile(info: FileInfo) async {
+        var searchPaths: [URL] = []
+
+        // Determine search locations
+        let homeDirectory = FileManager.default.homeDirectoryForCurrentUser
+
+        if let location = info.location?.lowercased() {
+            switch location {
+            case "downloads":
+                searchPaths.append(homeDirectory.appendingPathComponent("Downloads"))
+            case "desktop":
+                searchPaths.append(homeDirectory.appendingPathComponent("Desktop"))
+            case "documents":
+                searchPaths.append(homeDirectory.appendingPathComponent("Documents"))
+            default:
+                searchPaths.append(homeDirectory.appendingPathComponent("Downloads"))
+            }
+        } else {
+            // Default search locations
+            searchPaths = [
+                homeDirectory.appendingPathComponent("Downloads"),
+                homeDirectory.appendingPathComponent("Desktop"),
+                homeDirectory.appendingPathComponent("Documents")
+            ]
+        }
+
+        // Search for matching files
+        var foundFiles: [URL] = []
+
+        for path in searchPaths {
+            do {
+                let contents = try FileManager.default.contentsOfDirectory(
+                    at: path,
+                    includingPropertiesForKeys: [.contentModificationDateKey],
+                    options: [.skipsHiddenFiles]
+                )
+
+                // Filter by file type
+                let validExtensions = ["xlsx", "csv", "xls"]
+                var filtered = contents.filter { url in
+                    validExtensions.contains(url.pathExtension.lowercased())
+                }
+
+                // Filter by filename if specified
+                if let filename = info.filename, !filename.isEmpty {
+                    filtered = filtered.filter { url in
+                        url.lastPathComponent.lowercased().contains(filename.lowercased())
+                    }
+                }
+
+                // Sort by modification date (most recent first)
+                filtered.sort { url1, url2 in
+                    let date1 = try? url1.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
+                    let date2 = try? url2.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
+                    return (date1 ?? Date.distantPast) > (date2 ?? Date.distantPast)
+                }
+
+                foundFiles.append(contentsOf: filtered)
+            } catch {
+                print("Error searching \(path): \(error)")
+            }
+        }
+
+        await MainActor.run {
+            if let firstFile = foundFiles.first {
+                // Found file - open it directly
+                NotificationCenter.default.post(
+                    name: .openSpecificFile,
+                    object: firstFile
+                )
+            } else {
+                // No file found - show file picker
+                NotificationCenter.default.post(name: .openFile, object: nil)
+            }
+        }
     }
 
     private func handleSaveCommand() {
@@ -253,6 +393,13 @@ extension VoiceCommandHandler: SFSpeechRecognizerDelegate {
             }
         }
     }
+}
+
+// MARK: - File Info Structure
+struct FileInfo: Codable {
+    let filename: String?
+    let location: String?
+    let fileType: String?
 }
 
 // MARK: - Voice Error

@@ -23,6 +23,25 @@ struct ContentView: View {
 
             Divider()
 
+            // Error banner
+            if let error = dataManager.error {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text(error.localizedDescription)
+                        .font(.caption)
+                    Spacer()
+                    Button("Dismiss") {
+                        dataManager.error = nil
+                    }
+                    .buttonStyle(.borderless)
+                }
+                .padding(8)
+                .background(Color.orange.opacity(0.2))
+
+                Divider()
+            }
+
             // Main Content
             HSplitView {
                 // Main spreadsheet view
@@ -113,6 +132,13 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .showAdvancedAI)) { _ in
             showAdvancedAI.toggle()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openSpecificFile)) { notification in
+            if let url = notification.object as? URL {
+                Task {
+                    await dataManager.loadFile(from: url)
+                }
+            }
         }
     }
 
