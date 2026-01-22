@@ -186,8 +186,13 @@ class AIDataAnalyzer: ObservableObject {
 
         Example for vulnerability data:
         - X: "disney_rating" (shows Critical, High, Medium, Low)
-        - Y: Count/aggregate (show how many of each severity)
+        - Y: Use "count" as the yColumn name to trigger aggregation
         - Type: "bar"
+
+        For categorical/text-heavy data (like vulnerability reports):
+        - Use "bar" chart type
+        - X: The categorical column (disney_rating, residual_risk, etc.)
+        - Y: Use "count" to show frequency distribution
         """
 
         let response = try await aiManager.generate(
