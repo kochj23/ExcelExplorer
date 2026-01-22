@@ -205,14 +205,10 @@ class ChartImageGenerator: ObservableObject {
                 }
             }
             .chartXAxis {
-                AxisMarks(values: .automatic) { value in
+                AxisMarks(preset: .aligned) { value in
                     AxisGridLine()
-                    AxisValueLabel {
-                        if let index = value.as(Int.self), index < data.count {
-                            Text(data[index].x)
-                                .font(.system(size: 11))
-                        }
-                    }
+                    AxisValueLabel()
+                        .font(.system(size: 11))
                 }
             }
             .chartYAxis {
