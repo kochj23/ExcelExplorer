@@ -12,6 +12,7 @@ struct AIConversationView: View {
     @ObservedObject var aiManager = AIBackendManager.shared
     @StateObject private var analyzer = AIDataAnalyzer()
     @StateObject private var imageService = ImageGenerationService()
+    @StateObject private var chartGenerator = ChartImageGenerator()
 
     @State private var messages: [ChatMessage] = []
     @State private var inputText: String = ""
@@ -286,75 +287,42 @@ struct AIConversationView: View {
                     messages.append(chartMessage)
                 }
 
-                // Step 3: Generate data visualization image
-                let imagePrompt = """
-                Create a professional data visualization infographic with these exact specifications:
-
-                Title: Data Summary Visualization
-
-                Content to Display:
-                \(summary)
-
-                Chart Type: \(chartSuggestion.chartType.capitalized) chart
-
-                Style Requirements:
-                - Modern, clean design with white background
-                - Clear labels and legible text
-                - Business-appropriate color scheme (blues, greens, purples)
-                - Professional infographic style
-                - Data points clearly labeled
-                - Grid lines if applicable
-                - Title at top
-                - Legend if needed
-
-                Format: High-quality infographic suitable for presentations
-                """
-
+                // Step 3: Generate data visualization using Swift Charts (readable text!)
                 await MainActor.run {
                     let statusMessage = ChatMessage(
-                        content: "🎨 Generating visualization image...",
+                        content: "🎨 Creating visualization chart...",
                         role: .assistant
                     )
                     messages.append(statusMessage)
                 }
 
-                // Actually generate the image
-                if aiManager.isComfyUIAvailable || aiManager.isSwarmUIAvailable || aiManager.isAutomatic1111Available {
-                    do {
-                        let generatedImage = try await imageService.generateImage(
-                            prompt: imagePrompt,
-                            style: .realistic,
-                            size: .square1024
-                        )
+                // Generate chart using Swift Charts (native, with readable text)
+                let chartImage = await MainActor.run {
+                    chartGenerator.generateChartImage(
+                        sheet: sheet,
+                        chartType: chartSuggestion.chartType,
+                        xColumn: chartSuggestion.xColumn,
+                        yColumn: chartSuggestion.yColumn,
+                        title: "\(sheet.name) - Data Visualization"
+                    )
+                }
 
-                        await MainActor.run {
-                            var imageMessage = ChatMessage(
-                                content: "✅ Visualization created! Click image to save.",
-                                role: .assistant
-                            )
-                            imageMessage.image = generatedImage
-                            messages.append(imageMessage)
-                            isGenerating = false
-                        }
-                    } catch {
-                        await MainActor.run {
-                            let errorMessage = ChatMessage(
-                                content: "❌ Could not generate image: \(error.localizedDescription)\n\nMake sure ComfyUI, SwarmUI, or Automatic1111 is running. Check AI Config to verify image generation backend status.",
-                                role: .assistant
-                            )
-                            messages.append(errorMessage)
-                            isGenerating = false
-                        }
-                    }
-                } else {
-                    await MainActor.run {
-                        let noBackendMessage = ChatMessage(
-                            content: "⚠️ No image generation backend available.\n\nTo generate visualizations, please install and configure one of:\n• ComfyUI (http://localhost:8188)\n• SwarmUI (http://localhost:7801)\n• Automatic1111 (http://localhost:7860)\n\nCheck AI Config (CPU icon) to verify backend status.",
+                await MainActor.run {
+                    if let image = chartImage {
+                        var imageMessage = ChatMessage(
+                            content: "✅ Visualization created with readable text! Click image to save as PNG.\n\n📊 Chart shows: \(chartSuggestion.yColumn) by \(chartSuggestion.xColumn)\n💡 All text is perfectly readable (using Swift Charts, not AI generation)",
                             role: .assistant
                         )
-                        messages.append(noBackendMessage)
-                        isGenerating = false
+                        imageMessage.image = image
+                        messages.append(imageMessage)
+                    } else {
+                        let errorMessage = ChatMessage(
+                            content: "❌ Could not create chart. Make sure the data columns are compatible with the chart type.",
+                            role: .assistant
+                        )
+                        messages.append(errorMessage)
                     }
+                    isGenerating = false
                 }
 
             } catch {
