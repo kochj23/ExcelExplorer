@@ -25,17 +25,63 @@ class ChartImageGenerator: ObservableObject {
         // Find column indices
         guard let xIndex = sheet.headers.firstIndex(of: xColumn),
               let yIndex = sheet.headers.firstIndex(of: yColumn) else {
+            print("❌ Could not find columns: '\(xColumn)' or '\(yColumn)'")
+            print("Available headers: \(sheet.headers.joined(separator: ", "))")
             return nil
         }
 
-        // Extract data points (limit to first 20 for readability)
+        // Check if Y column is numeric - if not, we need to do aggregation
+        let yColumnIsNumeric = sheet.columnStats(yIndex)?.numbers.isEmpty == false
+
         var dataPoints: [(x: String, y: Double)] = []
 
-        for row in 1..<min(sheet.rowCount, 21) {
-            let xValue = sheet.cells[row][xIndex].displayValue
-            if case .number(let yValue) = sheet.cells[row][yIndex].value {
-                dataPoints.append((x: xValue, y: yValue))
+        if yColumnIsNumeric {
+            // Direct plotting: Y column has numeric values
+            for row in 1..<min(sheet.rowCount, 21) {
+                let xValue = sheet.cells[row][xIndex].displayValue
+
+                // Try to get numeric Y value
+                let yValue: Double?
+                switch sheet.cells[row][yIndex].value {
+                case .number(let num):
+                    yValue = num
+                case .date(let date):
+                    // Convert date to timestamp for visualization
+                    yValue = date.timeIntervalSince1970
+                case .string(let str):
+                    // Try parsing as number
+                    yValue = Double(str)
+                default:
+                    yValue = nil
+                }
+
+                if let y = yValue {
+                    dataPoints.append((x: xValue, y: y))
+                }
             }
+        } else {
+            // Aggregation: Count occurrences of X values (for categorical data)
+            print("📊 Y column is not numeric - creating frequency chart")
+
+            var counts: [String: Int] = [:]
+
+            for row in 1..<sheet.rowCount {
+                let xValue = sheet.cells[row][xIndex].displayValue
+                counts[xValue, default: 0] += 1
+            }
+
+            // Convert to data points (limit to top 20)
+            let sortedCounts = counts.sorted { $0.value > $1.value }.prefix(20)
+            dataPoints = sortedCounts.map { (x: $0.key, y: Double($0.value)) }
+
+            print("📊 Aggregated \(counts.count) unique categories, showing top \(dataPoints.count)")
+        }
+
+        print("📊 Chart data extracted: \(dataPoints.count) points from columns '\(xColumn)' and '\(yColumn)'")
+        if dataPoints.isEmpty {
+            print("❌ No valid data found")
+            print("   X column '\(xColumn)': \(sheet.cells[1][xIndex].displayValue)")
+            print("   Y column '\(yColumn)': \(sheet.cells[1][yIndex].displayValue)")
         }
 
         guard !dataPoints.isEmpty else { return nil }

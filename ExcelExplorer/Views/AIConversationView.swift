@@ -316,8 +316,29 @@ struct AIConversationView: View {
                         imageMessage.image = image
                         messages.append(imageMessage)
                     } else {
+                        // Get column types to help user understand
+                        let xIndex = sheet.headers.firstIndex(of: chartSuggestion.xColumn) ?? 0
+                        let yIndex = sheet.headers.firstIndex(of: chartSuggestion.yColumn) ?? 0
+
+                        let xSample = sheet.cells[1][xIndex].displayValue
+                        let ySample = sheet.cells[1][yIndex].displayValue
+
                         let errorMessage = ChatMessage(
-                            content: "❌ Could not create chart. Make sure the data columns are compatible with the chart type.",
+                            content: """
+                            ❌ Could not create chart with these columns:
+
+                            X-Axis: \(chartSuggestion.xColumn)
+                            Sample value: "\(xSample)"
+
+                            Y-Axis: \(chartSuggestion.yColumn)
+                            Sample value: "\(ySample)"
+
+                            Problem: The Y-axis column doesn't contain numeric data that can be charted.
+
+                            💡 Try asking: "Which columns have numeric data I can chart?"
+
+                            Or manually open Advanced AI → Forecasting tab and select a numeric column.
+                            """,
                             role: .assistant
                         )
                         messages.append(errorMessage)

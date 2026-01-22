@@ -148,25 +148,51 @@ class AIDataAnalyzer: ObservableObject {
     func suggestChart(_ sheet: SheetData) async throws -> ChartSuggestion {
         let context = PromptBuilder.buildDataContext(sheet: sheet)
 
+        // Identify numeric columns
+        var numericColumns: [String] = []
+        var categoricalColumns: [String] = []
+
+        for (index, header) in sheet.headers.enumerated() {
+            if let stats = sheet.columnStats(index), !stats.numbers.isEmpty {
+                numericColumns.append(header)
+            } else if !header.isEmpty {
+                categoricalColumns.append(header)
+            }
+        }
+
         let prompt = """
         Analyze this data and suggest the best chart type:
 
         \(context)
 
+        Numeric columns available: \(numericColumns.joined(separator: ", "))
+        Categorical columns available: \(categoricalColumns.joined(separator: ", "))
+
+        IMPORTANT RULES:
+        1. Y-axis MUST be a numeric column (from the numeric list above)
+        2. X-axis should be categorical (from categorical list) or numeric for trends
+        3. For text-heavy data, suggest counting categories (e.g., count of items by category)
+        4. Use column names EXACTLY as they appear in the headers
+
         Respond ONLY with valid JSON in this exact format:
         {
-            "chartType": "bar" or "line" or "pie" or "scatter",
-            "xColumn": "column name or index",
-            "yColumn": "column name or index",
-            "reasoning": "why this chart type is appropriate"
+            "chartType": "bar",
+            "xColumn": "exact column name from headers",
+            "yColumn": "exact column name from numeric columns list",
+            "reasoning": "why this works for the data"
         }
 
-        Choose the chart type that best represents the data structure and relationships.
+        Chart types: "bar" (categories), "line" (trends), "pie" (proportions)
+
+        Example for vulnerability data:
+        - X: "disney_rating" (shows Critical, High, Medium, Low)
+        - Y: Count/aggregate (show how many of each severity)
+        - Type: "bar"
         """
 
         let response = try await aiManager.generate(
             prompt: prompt,
-            systemPrompt: "You are a data visualization expert. Respond ONLY with JSON.",
+            systemPrompt: "You are a data visualization expert. Choose compatible columns. Y-axis must be numeric. Respond ONLY with JSON.",
             temperature: 0.2,
             maxTokens: 500
         )
