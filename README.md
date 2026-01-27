@@ -11,9 +11,31 @@
 
 ---
 
-## ✨ Latest Update: January 26, 2026
+## ✨ Latest Update: January 27, 2026 - v1.1.0
 
 ### 🎉 Major Enhancements:
+
+#### 📊 XLSX Export Implementation (NEW in v1.1.0)
+- **Full XLSX Writing** - Export workbooks to native Excel format
+- **Complete Spec Support** - Proper OOXML structure ([Content_Types].xml, workbook.xml, worksheets, styles)
+- **Shared Strings** - Efficient string deduplication
+- **Multiple Data Types** - Text, numbers, booleans, dates, formulas
+- **ZIP Compression** - Standard XLSX package format
+- **Excel Compatible** - Opens in Excel, Numbers, LibreOffice
+- **Large Dataset Support** - Handles up to 1,048,576 rows × 16,384 columns
+
+**Usage:**
+```swift
+try await ExcelWriter.writeXLSX(workbook: workbook, to: outputURL)
+```
+
+#### 🚀 MLX Backend Implementation (NEW in v1.1.0)
+- **Apple Silicon Native** - Full MLX integration via mlx_lm CLI
+- **Local AI Processing** - No cloud required
+- **Model Support** - mlx-community models (Llama, Mistral, Phi, etc.)
+- **Subprocess Management** - Proper Process handling with pipes
+- **Error Handling** - Installation detection and fallback
+- **Performance** - Leverages Neural Engine for fast inference
 
 #### ☁️ Cloud AI Integration (5 Providers)
 - **OpenAI API** - GPT-4o for advanced capabilities
