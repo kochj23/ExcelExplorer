@@ -62,6 +62,21 @@ extension AIBackendManager {
                 systemPrompt: systemPrompt,
                 maxTokens: maxTokens
             )
+
+        case .openAI:
+            throw AIError.mlxNotImplemented // Cloud providers not yet implemented
+
+        case .googleCloud:
+            throw AIError.mlxNotImplemented
+
+        case .azureCognitive:
+            throw AIError.mlxNotImplemented
+
+        case .awsAI:
+            throw AIError.mlxNotImplemented
+
+        case .ibmWatson:
+            throw AIError.mlxNotImplemented
         }
     }
 
