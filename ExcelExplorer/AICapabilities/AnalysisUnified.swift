@@ -118,10 +118,13 @@ class AnalysisUnified: ObservableObject {
     func discoverRelationships(_ data: [[String: Any]]) async throws -> [DataRelationship] {
         return [
             DataRelationship(
-                field1: "Age",
-                field2: "Income",
-                relationshipType: .positive,
-                strength: 0.67
+                type: .foreignKey,
+                sourceSheet: "Sheet1",
+                sourceColumn: "Age",
+                targetSheet: "Sheet1",
+                targetColumn: "Income",
+                strength: 0.67,
+                description: "Sample relationship"
             )
         ]
     }
@@ -251,31 +254,13 @@ struct PredictiveForecast {
     let methodology: String
 }
 
-struct DataRelationship: Identifiable {
-    let id = UUID()
-    let field1: String
-    let field2: String
-    let relationshipType: RelationType
-    let strength: Double
-}
-
-enum RelationType {
-    case positive
-    case negative
-    case none
-}
+// Note: DataRelationship defined in RelationshipDiscovery.swift
+// Note: Sentiment defined in SentimentAnalyzer.swift
 
 struct SentimentResult {
     let overallSentiment: Sentiment
     let score: Double
     let emotions: [Emotion: Double]
-}
-
-enum Sentiment {
-    case positive
-    case negative
-    case neutral
-    case mixed
 }
 
 enum Emotion {

@@ -305,18 +305,118 @@ extension AIBackendManager {
         maxTokens: Int
     ) async throws -> String {
 
-        // MLX runs via Python subprocess
-        // For now, fallback to Ollama if available
-        if isOllamaAvailable {
-            return try await generateWithOllama(
-                prompt: prompt,
-                systemPrompt: systemPrompt,
-                temperature: 0.7,
-                maxTokens: maxTokens
-            )
+        // Check if mlx_lm is installed
+        var mlxPath = "/opt/homebrew/bin/mlx_lm.generate"
+        if !FileManager.default.fileExists(atPath: mlxPath) {
+            // Try alternate paths
+            let alternatePaths = [
+                "/usr/local/bin/mlx_lm.generate",
+                "\(NSHomeDirectory())/.local/bin/mlx_lm.generate"
+            ]
+
+            var found = false
+            for path in alternatePaths {
+                if FileManager.default.fileExists(atPath: path) {
+                    mlxPath = path
+                    found = true
+                    break
+                }
+            }
+
+            if !found {
+                print("[AIBackend] MLX not installed. Install with: pip install mlx-lm")
+                throw AIError.mlxNotInstalled
+            }
         }
 
-        throw AIError.mlxNotImplemented
+        // Combine system prompt and user prompt
+        var fullPrompt = prompt
+        if let system = systemPrompt {
+            fullPrompt = "\(system)\n\n\(prompt)"
+        }
+
+        // Use default model or configured model
+        let model = mlxModel ?? "mlx-community/Llama-3.2-3B-Instruct-4bit"
+
+        // Create process to run mlx_lm
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: mlxPath)
+        process.arguments = [
+            "--model", model,
+            "--prompt", fullPrompt,
+            "--max-tokens", "\(maxTokens)",
+            "--temp", "0.7"
+        ]
+
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
+
+        print("[AIBackend] Running MLX with model: \(model)")
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+
+            let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+
+            if process.terminationStatus != 0 {
+                let errorMessage = String(data: errorData, encoding: .utf8) ?? "Unknown error"
+                print("[AIBackend] MLX error: \(errorMessage)")
+                throw AIError.mlxExecutionFailed(errorMessage)
+            }
+
+            guard let output = String(data: outputData, encoding: .utf8), !output.isEmpty else {
+                throw AIError.noResponse
+            }
+
+            // Parse MLX output (remove prompt echo and metadata)
+            let lines = output.components(separatedBy: .newlines)
+            var responseLines: [String] = []
+            var inResponse = false
+
+            for line in lines {
+                // Skip metadata lines
+                if line.hasPrefix("=====") || line.hasPrefix("Prompt:") || line.contains("tokens/s") {
+                    continue
+                }
+
+                // MLX output starts after prompt
+                if line.contains("Response:") || inResponse {
+                    inResponse = true
+                    if !line.contains("Response:") {
+                        responseLines.append(line)
+                    }
+                }
+            }
+
+            let response = responseLines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+
+            if response.isEmpty {
+                // If parsing failed, return raw output minus prompt
+                return output.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+
+            return response
+
+        } catch {
+            print("[AIBackend] MLX execution failed: \(error)")
+            throw AIError.mlxExecutionFailed(error.localizedDescription)
+        }
+    }
+}
+
+// MARK: - MLX Error Types
+
+extension AIError {
+    static var mlxNotInstalled: AIError {
+        return .backendError("MLX not installed. Run: pip install mlx-lm")
+    }
+
+    static func mlxExecutionFailed(_ message: String) -> AIError {
+        return .backendError("MLX execution failed: \(message)")
     }
 }
 
@@ -329,6 +429,7 @@ enum AIError: LocalizedError {
     case httpError(Int)
     case noResponse
     case mlxNotImplemented
+    case backendError(String)
 
     var errorDescription: String? {
         switch self {
@@ -344,6 +445,8 @@ enum AIError: LocalizedError {
             return "No response received from AI backend"
         case .mlxNotImplemented:
             return "MLX backend not yet implemented. Please use Ollama instead."
+        case .backendError(let message):
+            return "Backend error: \(message)"
         }
     }
 }

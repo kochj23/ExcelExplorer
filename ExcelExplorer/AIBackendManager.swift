@@ -41,6 +41,9 @@ class AIBackendManager: ObservableObject {
     @Published var ollamaModels: [String] = []
     @Published var selectedOllamaModel: String = "mistral:latest"
 
+    // MLX-specific
+    @Published var mlxModel: String? = "mlx-community/Llama-3.2-3B-Instruct-4bit"
+
     // Server URLs (customizable)
     @Published var ollamaServerURL: String = "http://localhost:11434"
     @Published var tinyLLMServerURL: String = "http://localhost:8000"

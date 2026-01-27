@@ -46,7 +46,7 @@ class VoiceUnified: ObservableObject {
         process.waitUntilExit()
 
         guard process.terminationStatus == 0 else {
-            throw VoiceError.cloneFailed
+            throw VoiceUnifiedError.cloneFailed
         }
     }
 
@@ -84,7 +84,7 @@ class VoiceUnified: ObservableObject {
         _ = synthesizeSpeech(text: briefingScript)
 
         // Return audio data
-        throw VoiceError.notImplemented
+        throw VoiceUnifiedError.notImplemented
     }
 
     // MARK: - Voice Models
@@ -102,7 +102,7 @@ class VoiceUnified: ObservableObject {
 
     func addCustomVoiceModel(referenceAudio: URL, name: String) async throws {
         // Train custom voice model
-        throw VoiceError.notImplemented
+        throw VoiceUnifiedError.notImplemented
     }
 }
 
@@ -121,7 +121,7 @@ enum VoiceQuality {
     case premium
 }
 
-enum VoiceError: Error {
+enum VoiceUnifiedError: Error {
     case cloneFailed
     case notImplemented
     case invalidAudio

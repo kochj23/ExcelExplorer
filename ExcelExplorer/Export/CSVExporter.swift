@@ -54,6 +54,7 @@ enum ExportError: Error {
     case noData
     case fileWriteError
     case invalidFormat(String)
+    case fileSystemError(String)
 
     var localizedDescription: String {
         switch self {
@@ -63,6 +64,8 @@ enum ExportError: Error {
             return "Failed to write file"
         case .invalidFormat(let message):
             return "Invalid export format: \(message)"
+        case .fileSystemError(let message):
+            return "File system error: \(message)"
         }
     }
 }
