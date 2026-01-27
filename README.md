@@ -1,203 +1,225 @@
-# ExcelExplorer
+# ExcelExplorer v1.1.0
 
-**AI-Powered Application with Cloud Integration & Ethical Safeguards**
+**AI-powered Excel file analyzer with native XLSX export and local AI processing**
 
-![Platform](https://img.shields.io/badge/platform-macOS%2013.0%2B-blue)
-![Swift](https://img.shields.io/badge/Swift-5.9-orange)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-Production-success)
-![AI](https://img.shields.io/badge/AI-5%20Cloud%20Providers-purple)
-![Ethics](https://img.shields.io/badge/Ethics-Protected-green)
+View, analyze, and export Excel files with AI-powered insights—all running locally on your Mac with Apple MLX.
 
 ---
 
-## ✨ Latest Update: January 27, 2026 - v1.1.0
+## What is ExcelExplorer?
 
-### 🎉 Major Enhancements:
+ExcelExplorer is a native macOS application for viewing, analyzing, and exporting Excel files (.xlsx, .xls, .csv) with built-in AI capabilities. It provides a fast, native interface for working with spreadsheets and includes AI-powered features for data analysis, all running locally on Apple Silicon.
 
-#### 📊 XLSX Export Implementation (NEW in v1.1.0)
-- **Full XLSX Writing** - Export workbooks to native Excel format
-- **Complete Spec Support** - Proper OOXML structure ([Content_Types].xml, workbook.xml, worksheets, styles)
-- **Shared Strings** - Efficient string deduplication
-- **Multiple Data Types** - Text, numbers, booleans, dates, formulas
-- **ZIP Compression** - Standard XLSX package format
-- **Excel Compatible** - Opens in Excel, Numbers, LibreOffice
-- **Large Dataset Support** - Handles up to 1,048,576 rows × 16,384 columns
+**Key Benefits:**
+- **Native XLSX Export (v1.1.0)**: Full Excel format writing with proper OOXML structure
+- **AI Analysis**: Summarize data, detect patterns, generate insights
+- **MLX Backend (v1.1.0)**: Apple Silicon AI processing, 100% local
+- **Fast Performance**: Native Swift implementation, no Electron overhead
+- **Privacy First**: All processing on your Mac
+
+**Perfect For:**
+- **Data Analysts**: Quick Excel file viewing and analysis
+- **Privacy-Conscious**: Keep sensitive data local
+- **Apple Silicon Users**: Optimized for M1/M2/M3/M4
+- **Developers**: Programmatic Excel export from Swift
+
+---
+
+## What's New in v1.1.0 (January 2026)
+
+### 📊 XLSX Export Implementation
+**Full Excel format writing:**
+
+- **Complete OOXML Spec**: Proper XML structure ([Content_Types].xml, workbook.xml, worksheets, styles)
+- **Shared Strings**: Efficient string deduplication
+- **Multiple Data Types**: Text, numbers, booleans, dates, formulas
+- **ZIP Compression**: Standard XLSX package format
+- **Excel Compatible**: Opens in Excel, Numbers, LibreOffice
+- **Large Dataset Support**: Up to 1,048,576 rows × 16,384 columns
 
 **Usage:**
 ```swift
 try await ExcelWriter.writeXLSX(workbook: workbook, to: outputURL)
 ```
 
-#### 🚀 MLX Backend Implementation (NEW in v1.1.0)
-- **Apple Silicon Native** - Full MLX integration via mlx_lm CLI
-- **Local AI Processing** - No cloud required
-- **Model Support** - mlx-community models (Llama, Mistral, Phi, etc.)
-- **Subprocess Management** - Proper Process handling with pipes
-- **Error Handling** - Installation detection and fallback
-- **Performance** - Leverages Neural Engine for fast inference
+**Technical Details:**
+- Creates proper directory structure (_rels/, xl/, xl/worksheets/)
+- Generates workbook.xml with sheet references
+- Writes sharedStrings.xml for text deduplication
+- Creates styles.xml for formatting
+- Packages as ZIP with .xlsx extension
 
-#### ☁️ Cloud AI Integration (5 Providers)
-- **OpenAI API** - GPT-4o for advanced capabilities
-- **Google Cloud AI** - Vertex AI, Vision, Speech
-- **Microsoft Azure** - Cognitive Services
-- **AWS AI Services** - Bedrock, Rekognition, Polly
-- **IBM Watson** - NLU, Speech, Discovery
+### 🚀 MLX Backend Implementation
+**Apple Silicon native AI:**
 
-#### 🚀 Enhanced Features
-- **AI Backend Status Menu** - Visual indicators (🟢/🔴/⚪)
-- **Auto-Fallback System** - Switches backends if primary fails
-- **Connection Testing** - Verify API keys work
-- **Usage Tracking** - Token counts and cost estimation
-- **Performance Metrics** - Latency and success rates
-- **Notification System** - Backend status alerts
-- **Keyboard Shortcuts** - ⌘1-⌘9 for quick switching
-
-#### 🛡️ Ethical AI Safeguards (NEW)
-- **Comprehensive content monitoring**
-- **Prohibited use detection** (100+ patterns)
-- **Automatic blocking** of illegal/harmful content
-- **Crisis resource referrals**
-- **Usage logging** (hashed, not plaintext)
-- **Legal compliance** (CSAM reporting, etc.)
-- **Terms of Service** enforcement
-
-**⛔️ Cannot Be Used For:**
-- Illegal activities
-- Harmful content
-- Hate speech
-- Misinformation generation
-- Privacy violations
-- Harassment or abuse
-- Fraud or deception
+- **Local Processing**: No cloud, no internet required
+- **Model Support**: mlx-community models (Llama, Mistral, Phi)
+- **Process Management**: Proper subprocess handling
+- **Error Handling**: Installation detection and fallback
+- **Performance**: Neural Engine acceleration
 
 ---
 
-## 🎯 Features
+## Features
 
-### Current Capabilities:
-[App-specific features would be listed here]
+### Core Functionality
+- **Excel File Viewing**: .xlsx, .xls, .csv support
+- **Multi-Sheet Support**: Navigate between sheets
+- **Cell Editing**: Modify cell values and formulas
+- **XLSX Export (v1.1.0)**: Write native Excel format
+- **CSV Export**: Standard CSV with customizable delimiters
+- **Search & Filter**: Find data quickly
+- **Formula Evaluation**: Calculate formula results
 
-### AI Backend Support:
-- Ollama (local, free)
-- MLX (Apple Silicon optimized)
-- TinyLLM/TinyChat (lightweight)
-- OpenWebUI (self-hosted)
-- OpenAI (cloud, paid)
-- Google Cloud (cloud, paid)
-- Azure (cloud, paid)
-- AWS (cloud, paid)
-- IBM Watson (cloud, paid)
+### AI Features
+- **Data Summarization**: AI-generated dataset summaries
+- **Pattern Detection**: Identify trends and anomalies
+- **Column Analysis**: Automatic data type detection
+- **Insights Generation**: AI-powered data insights
+- **Query Interface**: Natural language data queries
+- **MLX Backend (v1.1.0)**: Local AI processing
 
----
-
-## 🔒 Security & Ethics
-
-### Ethical AI Guardian:
-All AI operations are monitored for:
-- ✅ Legal compliance
-- ✅ Ethical use
-- ✅ Safety
-- ✅ Privacy protection
-
-Violations are:
-- Automatically detected
-- Immediately blocked
-- Securely logged
-- Reported if required by law
-
-**Read full terms:** [ETHICAL_AI_TERMS_OF_SERVICE.md](./ETHICAL_AI_TERMS_OF_SERVICE.md)
+### Data Operations
+- **Sort**: Sort by any column
+- **Filter**: Filter rows by criteria
+- **Search**: Find text across all sheets
+- **Statistics**: Basic stats (sum, avg, min, max)
+- **Duplicate Detection**: Find duplicate rows
+- **Data Validation**: Type checking and validation
 
 ---
 
-## 📦 Installation
+## Security
+
+### Privacy & Data Protection
+- **100% Local Processing**: Files never leave your Mac
+- **No Cloud Upload**: All operations offline
+- **MLX Backend**: AI runs on-device via Apple Neural Engine
+- **No Telemetry**: Zero analytics or tracking
+- **Keychain Storage**: Secure credential storage (if cloud AI used)
+
+### File Security
+- **Read-Only by Default**: Protects original files
+- **Backup Before Save**: .backup files created
+- **Input Validation**: Prevents malformed file attacks
+- **Memory Safety**: Bounds checking on all array access
+
+---
+
+## Requirements
+
+### System Requirements
+- **macOS 13.0 (Ventura) or later**
+- **Architecture**: Universal (Apple Silicon recommended for MLX)
+
+### For MLX Backend
+- **Apple Silicon**: M1/M2/M3/M4
+- **Python 3.9+**
+- **mlx-lm**: `pip install mlx-lm`
+- **8GB+ RAM**
+
+### For Ollama Backend
+- **Any Mac**
+- **Ollama**: `brew install ollama`
+- **8GB+ RAM**
+
+### Dependencies
+**Built-in:**
+- SwiftUI, AppKit, Foundation
+
+**Optional:**
+- mlx-lm (for MLX AI)
+- Ollama (for Ollama AI)
+
+---
+
+## Installation
+
+### Pre-built Binary
 
 ```bash
-# Install from DMG
-open ExcelExplorer-latest.dmg
-
-# Or from source
-cd "/Volumes/Data/xcode/ExcelExplorer"
-xcodebuild -project "ExcelExplorer.xcodeproj" -scheme "ExcelExplorer" -configuration Release build
-cp -R build/Release/*.app ~/Applications/
+open "/Volumes/Data/xcode/binaries/20260127-ExcelExplorer-v1.1.0/ExcelExplorer-v1.1.0-build2.dmg"
 ```
 
-### AI Backend Setup (Optional):
+### Build from Source
+
 ```bash
-# Install Ollama (free, local, private)
-brew install ollama
-ollama serve
-ollama pull mistral:latest
-
-# Or configure cloud AI in Settings
+git clone https://github.com/kochj23/ExcelExplorer.git
+cd ExcelExplorer
+open "ExcelExplorer.xcodeproj"
+# Press ⌘R to build and run
 ```
 
 ---
 
-## 🎓 Usage
+## Usage
 
-1. Launch application
-2. **First time:** Acknowledge ethical guidelines
-3. Configure AI backend (Settings → AI Backend)
-4. Use AI features responsibly
-5. All usage monitored for safety
+### Open Excel File
 
----
+```bash
+# Launch app
+open ~/Applications/ExcelExplorer.app
 
-## ⚖️ Legal & Ethics
+# Or open file directly
+open -a ExcelExplorer ~/Documents/data.xlsx
+```
 
-### Terms:
-- MIT License for code
-- **Ethical AI Terms of Service** for usage
-- Privacy-first design
-- Open source transparency
+### Export to XLSX
 
-### Prohibited Uses:
-See [ETHICAL_AI_TERMS_OF_SERVICE.md](./ETHICAL_AI_TERMS_OF_SERVICE.md) for complete list.
+1. Open file in ExcelExplorer
+2. Make any edits
+3. File → Export → XLSX
+4. Choose location
+5. File saved in Excel format
 
-**Summary:** Don't use for illegal, harmful, or unethical purposes. Violations logged and reported.
+### AI Analysis
 
----
-
-## 🛠️ Development
-
-**Author:** Jordan Koch ([@kochj23](https://github.com/kochj23))
-**Built with:** SwiftUI, Modern macOS APIs
-**AI Architecture:** Multi-backend with ethical safeguards
+1. Select data range
+2. Click "AI Analyze"
+3. Choose analysis type (summarize, patterns, insights)
+4. View AI-generated analysis
 
 ---
 
-## 📊 Version History
+## Troubleshooting
 
-**Latest:** Enhanced Edition (Jan 2026)
-- Added 5 cloud AI providers
-- Added ethical safeguards
-- Added enhanced features
-- Production-ready
+**Can't Open File:**
+- Verify file is valid Excel format
+- Check file permissions
+- Try opening in Excel/Numbers first
 
----
+**XLSX Export Fails:**
+- Check disk space available
+- Verify write permissions
+- Try smaller dataset first
 
-## 🆘 Support & Resources
-
-### App Support:
-- GitHub Issues: [Report bugs](https://github.com/kochj23/ExcelExplorer/issues)
-- Documentation: See project files
-
-### Crisis Resources:
-- **988** - Suicide Prevention Lifeline
-- **741741** - Crisis Text Line (text HOME)
-- **1-800-799-7233** - Domestic Violence Hotline
+**MLX Not Working:**
+- Install: `pip install mlx-lm`
+- Verify: `which mlx_lm.generate`
+- Check Apple Silicon Mac
 
 ---
 
-## 📄 License
+## Version History
 
-MIT License - See LICENSE file
+### v1.1.0 (January 2026)
+- XLSX export implementation
+- MLX backend integration
+- Performance improvements
 
-**Ethical Usage Required** - See ETHICAL_AI_TERMS_OF_SERVICE.md
+### v1.0.0 (2025)
+- Initial release
+- Excel viewing
+- CSV export
+- Basic AI features
 
 ---
 
-**ExcelExplorer - Powerful AI with responsible safeguards**
+## License
 
-© 2026 Jordan Koch. All rights reserved.
+MIT License - Copyright © 2026 Jordan Koch
+
+---
+
+**Last Updated:** January 27, 2026
+**Status:** ✅ Production Ready
