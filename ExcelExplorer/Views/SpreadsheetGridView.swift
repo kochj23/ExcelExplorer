@@ -10,9 +10,16 @@ import SwiftUI
 struct SpreadsheetGridView: View {
     @EnvironmentObject var dataManager: ExcelDataManager
     @State private var selectedCell: CellReference?
+    @State private var selectedCells: Set<CellReference> = []
     @State private var scrollPosition: CGPoint = .zero
     @State private var visibleRange: (rows: Range<Int>, columns: Range<Int>) = (0..<50, 0..<26)
     @State private var zoomLevel: Double = 100
+
+    // Find functionality
+    @State private var showFindPanel = false
+    @State private var findText = ""
+    @State private var findResults: [CellReference] = []
+    @State private var currentFindIndex = 0
 
     // Cell dimensions
     private let cellWidth: CGFloat = 120

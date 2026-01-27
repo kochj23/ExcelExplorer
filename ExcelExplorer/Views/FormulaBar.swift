@@ -84,8 +84,3 @@ struct FormulaBar: View {
         isEditing = false
     }
 }
-
-// Define cell selection notification
-extension Notification.Name {
-    static let cellSelected = Notification.Name("cellSelected")
-}

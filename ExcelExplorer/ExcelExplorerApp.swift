@@ -50,7 +50,48 @@ struct ExcelExplorerApp: App {
                 .keyboardShortcut("e", modifiers: .command)
             }
 
+            CommandMenu("Edit") {
+                Button("Find in Sheet...") {
+                    NotificationCenter.default.post(name: .showFind, object: nil)
+                }
+                .keyboardShortcut("f", modifiers: .command)
+
+                Button("Find Next") {
+                    NotificationCenter.default.post(name: .findNext, object: nil)
+                }
+                .keyboardShortcut("g", modifiers: .command)
+
+                Button("Find Previous") {
+                    NotificationCenter.default.post(name: .findPrevious, object: nil)
+                }
+                .keyboardShortcut("g", modifiers: [.command, .shift])
+
+                Divider()
+
+                Button("Select All") {
+                    NotificationCenter.default.post(name: .selectAll, object: nil)
+                }
+                .keyboardShortcut("a", modifiers: .command)
+            }
+
             CommandMenu("View") {
+                Button("Zoom In") {
+                    NotificationCenter.default.post(name: .zoomIn, object: nil)
+                }
+                .keyboardShortcut("+", modifiers: .command)
+
+                Button("Zoom Out") {
+                    NotificationCenter.default.post(name: .zoomOut, object: nil)
+                }
+                .keyboardShortcut("-", modifiers: .command)
+
+                Button("Reset Zoom") {
+                    NotificationCenter.default.post(name: .resetZoom, object: nil)
+                }
+                .keyboardShortcut("0", modifiers: .command)
+
+                Divider()
+
                 Button("Toggle AI Panel") {
                     NotificationCenter.default.post(name: .toggleAIPanel, object: nil)
                 }
@@ -62,6 +103,35 @@ struct ExcelExplorerApp: App {
             }
 
             CommandMenu("AI") {
+                Button("🧠 Explain This Spreadsheet") {
+                    NotificationCenter.default.post(name: .explainSpreadsheet, object: nil)
+                }
+                .keyboardShortcut("e", modifiers: [.command, .shift])
+
+                Button("💎 Find Insights") {
+                    NotificationCenter.default.post(name: .findInsights, object: nil)
+                }
+                .keyboardShortcut("i", modifiers: [.command, .shift])
+
+                Button("📊 Generate Report") {
+                    NotificationCenter.default.post(name: .generateReport, object: nil)
+                }
+                .keyboardShortcut("r", modifiers: [.command, .shift])
+
+                Divider()
+
+                Button("🧹 Clean My Data") {
+                    NotificationCenter.default.post(name: .cleanData, object: nil)
+                }
+                .keyboardShortcut("l", modifiers: [.command, .shift])
+
+                Button("📝 Natural Language Formula...") {
+                    NotificationCenter.default.post(name: .naturalLanguageFormula, object: nil)
+                }
+                .keyboardShortcut("n", modifiers: [.command, .shift])
+
+                Divider()
+
                 Button("Advanced AI Features...") {
                     NotificationCenter.default.post(name: .showAdvancedAI, object: nil)
                 }
@@ -72,7 +142,6 @@ struct ExcelExplorerApp: App {
                 Button("Analyze Data") {
                     NotificationCenter.default.post(name: .analyzeData, object: nil)
                 }
-                .keyboardShortcut("a", modifiers: [.command, .shift])
 
                 Button("Generate Chart") {
                     NotificationCenter.default.post(name: .generateChart, object: nil)
