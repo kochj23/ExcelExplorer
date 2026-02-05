@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import WidgetKit
 
 @MainActor
 class ExcelDataManager: ObservableObject {
@@ -54,6 +55,9 @@ class ExcelDataManager: ObservableObject {
             isDirty = false
 
             NotificationCenter.default.post(name: .workbookLoaded, object: workbook)
+
+            // Update widget data
+            updateWidgetData()
 
         } catch {
             self.error = error as? ExcelError ?? .unknown(error.localizedDescription)
@@ -308,6 +312,115 @@ class ExcelDataManager: ObservableObject {
                 }
             }
         }
+    }
+
+    // MARK: - Widget Integration
+
+    /// App Group identifier for widget data sharing
+    private let appGroupIdentifier = "group.com.jkoch.excelexplorer"
+
+    /// Update widget with current file data
+    func updateWidgetData() {
+        guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else { return }
+
+        // Build recent file entry
+        if let workbook = workbook, let url = fileURL {
+            var recentFiles = loadRecentFiles(from: defaults)
+
+            // Get file size
+            var fileSize: Int64 = 0
+            if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
+               let size = attrs[.size] as? Int64 {
+                fileSize = size
+            }
+
+            // Create recent file entry
+            let recentFile: [String: Any] = [
+                "id": UUID().uuidString,
+                "filename": workbook.filename,
+                "filePath": url.path,
+                "lastOpened": Date().timeIntervalSince1970,
+                "rowCount": currentSheet?.rowCount ?? 0,
+                "columnCount": currentSheet?.columnCount ?? 0,
+                "sheetCount": workbook.sheets.count,
+                "fileSize": fileSize
+            ]
+
+            // Remove existing entry for same path
+            recentFiles.removeAll { ($0["filePath"] as? String) == url.path }
+
+            // Add new entry at start
+            recentFiles.insert(recentFile, at: 0)
+
+            // Keep max 10 entries
+            if recentFiles.count > 10 {
+                recentFiles = Array(recentFiles.prefix(10))
+            }
+
+            // Save recent files
+            defaults.set(recentFiles, forKey: "ExcelExplorerRecentFiles")
+
+            // Save current file stats
+            let currentStats: [String: Any] = [
+                "filename": workbook.filename,
+                "rowCount": currentSheet?.rowCount ?? 0,
+                "columnCount": currentSheet?.columnCount ?? 0,
+                "sheetCount": workbook.sheets.count,
+                "cellCount": (currentSheet?.rowCount ?? 0) * (currentSheet?.columnCount ?? 0),
+                "hasFormulas": hasFormulas(),
+                "hasCharts": currentSheet?.charts.isEmpty == false,
+                "lastModified": Date().timeIntervalSince1970
+            ]
+            defaults.set(currentStats, forKey: "ExcelExplorerCurrentFile")
+
+            defaults.synchronize()
+
+            // Reload widget timelines
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+    }
+
+    /// Load recent files from shared defaults
+    private func loadRecentFiles(from defaults: UserDefaults) -> [[String: Any]] {
+        return defaults.array(forKey: "ExcelExplorerRecentFiles") as? [[String: Any]] ?? []
+    }
+
+    /// Check if current sheet has formulas
+    private func hasFormulas() -> Bool {
+        guard let sheet = currentSheet else { return false }
+        for row in 0..<min(sheet.rowCount, 100) {  // Check first 100 rows for performance
+            for col in 0..<min(sheet.columnCount, 26) {
+                if let cell = sheet.getCell(row: row, column: col),
+                   case .formula = cell.value {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    /// Clear widget data when file is closed
+    func clearWidgetCurrentFile() {
+        guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else { return }
+        defaults.removeObject(forKey: "ExcelExplorerCurrentFile")
+        defaults.synchronize()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Update AI analysis status in widget
+    func updateWidgetAIStatus(isAnalyzing: Bool, type: String? = nil, insightsCount: Int = 0, summary: String? = nil) {
+        guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else { return }
+
+        let aiStatus: [String: Any] = [
+            "isAnalyzing": isAnalyzing,
+            "lastAnalysisDate": isAnalyzing ? 0 : Date().timeIntervalSince1970,
+            "insightsCount": insightsCount,
+            "analysisType": type ?? "",
+            "summary": summary ?? ""
+        ]
+        defaults.set(aiStatus, forKey: "ExcelExplorerAIStatus")
+        defaults.synchronize()
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }
 

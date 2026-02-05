@@ -1,12 +1,18 @@
 import Foundation
+import MLX
+import MLXNN
+import MLXLLM
+import MLXLMCommon
 
 //
 //  AIBackendManager+Generation.swift
 //  Shared AI Backend Manager - Generation Methods
 //
 //  Real implementation of generate() that calls Ollama, TinyLLM, OpenWebUI, etc.
+//  Now includes native MLX Swift support
 //  Author: Jordan Koch
 //  Date: 2026-01-21
+//  Updated: 2026-01-27 - Native MLX Swift
 //
 
 extension AIBackendManager {
@@ -305,106 +311,68 @@ extension AIBackendManager {
         maxTokens: Int
     ) async throws -> String {
 
-        // Check if mlx_lm is installed
-        var mlxPath = "/opt/homebrew/bin/mlx_lm.generate"
-        if !FileManager.default.fileExists(atPath: mlxPath) {
-            // Try alternate paths
-            let alternatePaths = [
-                "/usr/local/bin/mlx_lm.generate",
-                "\(NSHomeDirectory())/.local/bin/mlx_lm.generate"
-            ]
+        // Try native MLX Swift first
+        do {
+            return try await generateWithNativeMLX(prompt: prompt, systemPrompt: systemPrompt, maxTokens: maxTokens)
+        } catch {
+            print("[AIBackend] Native MLX failed: \(error), falling back to subprocess")
+            return try await generateWithMLXSubprocess(prompt: prompt, systemPrompt: systemPrompt, maxTokens: maxTokens)
+        }
+    }
 
-            var found = false
-            for path in alternatePaths {
-                if FileManager.default.fileExists(atPath: path) {
-                    mlxPath = path
-                    found = true
-                    break
-                }
-            }
+    private func generateWithNativeMLX(prompt: String, systemPrompt: String?, maxTokens: Int) async throws -> String {
+        print("[AIBackend] Using native MLX Swift")
 
-            if !found {
-                print("[AIBackend] MLX not installed. Install with: pip install mlx-lm")
-                throw AIError.mlxNotInstalled
-            }
+        let modelName = mlxModel ?? "mlx-community/Llama-3.2-3B-Instruct-4bit"
+
+        // Load model container using the current MLX Swift API
+        let modelContainer = try await loadModelContainer(id: modelName)
+
+        // Create a chat session with optional system prompt
+        let session = ChatSession(modelContainer, instructions: systemPrompt, generateParameters: GenerateParameters(maxTokens: maxTokens, temperature: 0.7))
+
+        // Generate response
+        let response = try await session.respond(to: prompt)
+
+        return response
+    }
+
+    private func generateWithMLXSubprocess(prompt: String, systemPrompt: String?, maxTokens: Int) async throws -> String {
+        print("[AIBackend] Using subprocess fallback")
+
+        let mlxPath = "/opt/homebrew/bin/mlx_lm.generate"
+        guard FileManager.default.fileExists(atPath: mlxPath) else {
+            throw AIError.mlxNotInstalled
         }
 
-        // Combine system prompt and user prompt
         var fullPrompt = prompt
         if let system = systemPrompt {
             fullPrompt = "\(system)\n\n\(prompt)"
         }
 
-        // Use default model or configured model
         let model = mlxModel ?? "mlx-community/Llama-3.2-3B-Instruct-4bit"
 
-        // Create process to run mlx_lm
         let process = Process()
         process.executableURL = URL(fileURLWithPath: mlxPath)
-        process.arguments = [
-            "--model", model,
-            "--prompt", fullPrompt,
-            "--max-tokens", "\(maxTokens)",
-            "--temp", "0.7"
-        ]
+        process.arguments = ["--model", model, "--prompt", fullPrompt, "--max-tokens", "\(maxTokens)", "--temp", "0.7"]
 
         let outputPipe = Pipe()
-        let errorPipe = Pipe()
         process.standardOutput = outputPipe
-        process.standardError = errorPipe
+        process.standardError = Pipe()
 
-        print("[AIBackend] Running MLX with model: \(model)")
+        try process.run()
+        process.waitUntilExit()
 
-        do {
-            try process.run()
-            process.waitUntilExit()
-
-            let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-
-            if process.terminationStatus != 0 {
-                let errorMessage = String(data: errorData, encoding: .utf8) ?? "Unknown error"
-                print("[AIBackend] MLX error: \(errorMessage)")
-                throw AIError.mlxExecutionFailed(errorMessage)
-            }
-
-            guard let output = String(data: outputData, encoding: .utf8), !output.isEmpty else {
-                throw AIError.noResponse
-            }
-
-            // Parse MLX output (remove prompt echo and metadata)
-            let lines = output.components(separatedBy: .newlines)
-            var responseLines: [String] = []
-            var inResponse = false
-
-            for line in lines {
-                // Skip metadata lines
-                if line.hasPrefix("=====") || line.hasPrefix("Prompt:") || line.contains("tokens/s") {
-                    continue
-                }
-
-                // MLX output starts after prompt
-                if line.contains("Response:") || inResponse {
-                    inResponse = true
-                    if !line.contains("Response:") {
-                        responseLines.append(line)
-                    }
-                }
-            }
-
-            let response = responseLines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
-
-            if response.isEmpty {
-                // If parsing failed, return raw output minus prompt
-                return output.trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-
-            return response
-
-        } catch {
-            print("[AIBackend] MLX execution failed: \(error)")
-            throw AIError.mlxExecutionFailed(error.localizedDescription)
+        guard process.terminationStatus == 0 else {
+            throw AIError.mlxExecutionFailed("Subprocess failed")
         }
+
+        let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+        guard let output = String(data: outputData, encoding: .utf8), !output.isEmpty else {
+            throw AIError.noResponse
+        }
+
+        return output.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
