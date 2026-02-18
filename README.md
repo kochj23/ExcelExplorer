@@ -6,6 +6,9 @@ View, analyze, and export Excel files with AI-powered insights—all running loc
 
 ---
 
+\![Excel Explorer](Screenshots/main-window.png)
+
+
 ## What is ExcelExplorer?
 
 ExcelExplorer is a native macOS application for viewing, analyzing, and exporting Excel files (.xlsx, .xls, .csv) with built-in AI capabilities. It provides a fast, native interface for working with spreadsheets and includes AI-powered features for data analysis, all running locally on Apple Silicon.
