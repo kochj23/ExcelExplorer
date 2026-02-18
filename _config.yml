@@ -1,0 +1,3 @@
+theme: jekyll-theme-cayman
+title: "ExcelExplorer"
+description: "AI-powered Excel and spreadsheet viewer for macOS — open XLSX, CSV, and XLS files with conversational data analysis using local LLMs. Built with Swift and SwiftUI."
