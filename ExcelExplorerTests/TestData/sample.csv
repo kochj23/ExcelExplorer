@@ -1,0 +1,6 @@
+Name,Age,Salary,Department,Active,StartDate
+Alice,30,75000.50,Engineering,TRUE,2020-01-15
+Bob,25,62000,Marketing,FALSE,2021-06-01
+Charlie,35,98000,Engineering,TRUE,2019-03-20
+Diana,28,,Sales,TRUE,2022-11-10
+Eve,42,115000.75,Engineering,TRUE,2018-07-05
