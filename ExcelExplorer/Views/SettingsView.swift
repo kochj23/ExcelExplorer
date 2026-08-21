@@ -49,8 +49,47 @@ struct AIBackendSettingsTab: View {
     @AppStorage("aiTemperature") private var temperature: Double = 0.7
     @AppStorage("aiMaxTokens") private var maxTokens: Double = 2000
 
+    // Multi-model load balancer subsystem (OpenRouter + Nova Gateway + local balancing).
+    @ObservedObject private var llmSettings = LLMAppSettings.shared
+    @StateObject private var llmManager = LLMBackendManager()
+    @State private var openRouterKey: String = ""
+    @State private var balancerTestResult: String = ""
+
     var body: some View {
         Form {
+            Section("Multi-Model Load Balancer") {
+                Toggle("Balance across all local models (Ollama + MLX)", isOn: $llmSettings.useAllLocalModels)
+                    .help("Spread each request across every locally discovered Ollama and MLX model.")
+
+                Toggle("Enable all frontier models (OpenRouter)", isOn: $llmSettings.enableAllFrontierModels)
+                    .help("Include OpenRouter's frontier cloud models in the balancer pool. Requires an API key below.")
+
+                Toggle("Use Nova Gateway (optional)", isOn: $llmSettings.useNovaGateway)
+                    .help("Route through Nova's gateway when it is running. Entirely optional — if Nova is unreachable it is simply skipped.")
+
+                SecureField("OpenRouter API Key", text: $openRouterKey)
+                    .textFieldStyle(.roundedBorder)
+                    .help("Stored securely in the macOS Keychain — never written to disk or UserDefaults.")
+                    .onSubmit { llmManager.setOpenRouterAPIKey(openRouterKey) }
+                    .onAppear { openRouterKey = llmManager.openRouterAPIKey() ?? "" }
+
+                TextField("Nova Gateway URL", text: $llmSettings.novaGatewayURL)
+                    .textFieldStyle(.roundedBorder)
+                    .help("Default: http://127.0.0.1:18792")
+
+                Button("Save Key & Test Balanced Backend") {
+                    llmManager.setOpenRouterAPIKey(openRouterKey)
+                    Task { await testBalancedConnection() }
+                }
+                .buttonStyle(.bordered)
+
+                if !balancerTestResult.isEmpty {
+                    Text(balancerTestResult)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+
             Section("AI Backend Configuration") {
                 TextField("Backend URL", text: $backendURL)
                     .textFieldStyle(.roundedBorder)
@@ -107,6 +146,22 @@ struct AIBackendSettingsTab: View {
             print("✅ AI Connection successful: \(response)")
         } catch {
             print("❌ AI Connection failed: \(error)")
+        }
+    }
+
+    /// Exercise the balanced/failover dispatch path of the multi-model manager.
+    private func testBalancedConnection() async {
+        await llmManager.refreshAllBackends()
+        do {
+            let response = try await llmManager.generate(
+                prompt: "Reply with 'OK'.",
+                systemPrompt: "Respond briefly with just 'OK'.",
+                temperature: 0.5,
+                maxTokens: 50
+            )
+            balancerTestResult = "✅ Balanced backend responded: \(response.prefix(80))"
+        } catch {
+            balancerTestResult = "⚠️ No balanced backend available: \(error.localizedDescription)"
         }
     }
 }
