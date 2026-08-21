@@ -65,6 +65,15 @@
 		TST00100000000A /* quoted.csv in Resources */ = {isa = PBXBuildFile; fileRef = TST00100000001A /* quoted.csv */; };
 		TST00100000000B /* empty.csv in Resources */ = {isa = PBXBuildFile; fileRef = TST00100000001B /* empty.csv */; };
 		TST00100000000C /* large_sample.csv in Resources */ = {isa = PBXBuildFile; fileRef = TST00100000001C /* large_sample.csv */; };
+		LBBLD0000000000000000001 /* ModelRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000001 /* ModelRegistry.swift */; };
+		LBBLD0000000000000000002 /* OpenRouterProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000002 /* OpenRouterProvider.swift */; };
+		LBBLD0000000000000000003 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000003 /* KeychainStore.swift */; };
+		LBBLD0000000000000000004 /* LLMBackendManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000004 /* LLMBackendManager.swift */; };
+		LBBLD0000000000000000005 /* LLMBackendType.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000005 /* LLMBackendType.swift */; };
+		LBBLD0000000000000000006 /* LLMChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000006 /* LLMChatMessage.swift */; };
+		LBBLD0000000000000000007 /* BackendStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000007 /* BackendStatus.swift */; };
+		LBBLD0000000000000000008 /* LLMAppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000008 /* LLMAppSettings.swift */; };
+		LBBLD0000000000000000009 /* LoadBalancerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000009 /* LoadBalancerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -104,7 +113,7 @@
 		2BD4D5D42C62F1EE96D4C3AC /* UnifiedAICapabilities.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UnifiedAICapabilities.swift; path = AICapabilities/UnifiedAICapabilities.swift; sourceTree = "<group>"; };
 		37811C9B54B34E48BD83A821 /* ActionableAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionableAI.swift; sourceTree = "<group>"; };
 		3A7AE5B79730A33F3E83BC4A /* AnalysisUnified.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AnalysisUnified.swift; path = AICapabilities/AnalysisUnified.swift; sourceTree = "<group>"; };
-		407D5B1A2D2782F08A574732 /* NovaAPIServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "/Volumes/Data/xcode/ExcelExplorer/ExcelExplorer/NovaAPIServer.swift"; sourceTree = "<absolute>"; };
+		407D5B1A2D2782F08A574732 /* NovaAPIServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NovaAPIServer.swift; sourceTree = "<group>"; };
 		MISS0001B0000001 /* EthicalAIGuardian.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EthicalAIGuardian.swift; sourceTree = "<group>"; };
 		45EDDE7F374510C26C3F35A3 /* ChartImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartImageGenerator.swift; sourceTree = "<group>"; };
 		8D555B42394CB1474E45736C /* VoiceUnified.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceUnified.swift; path = AICapabilities/VoiceUnified.swift; sourceTree = "<group>"; };
@@ -161,6 +170,15 @@
 		TST00100000001A /* quoted.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = quoted.csv; sourceTree = "<group>"; };
 		TST00100000001B /* empty.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = empty.csv; sourceTree = "<group>"; };
 		TST00100000001C /* large_sample.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = large_sample.csv; sourceTree = "<group>"; };
+		LBREF0000000000000000001 /* ModelRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelRegistry.swift; sourceTree = "<group>"; };
+		LBREF0000000000000000002 /* OpenRouterProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterProvider.swift; sourceTree = "<group>"; };
+		LBREF0000000000000000003 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		LBREF0000000000000000004 /* LLMBackendManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMBackendManager.swift; sourceTree = "<group>"; };
+		LBREF0000000000000000005 /* LLMBackendType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMBackendType.swift; sourceTree = "<group>"; };
+		LBREF0000000000000000006 /* LLMChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMChatMessage.swift; sourceTree = "<group>"; };
+		LBREF0000000000000000007 /* BackendStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendStatus.swift; sourceTree = "<group>"; };
+		LBREF0000000000000000008 /* LLMAppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMAppSettings.swift; sourceTree = "<group>"; };
+		LBREF0000000000000000009 /* LoadBalancerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadBalancerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -230,6 +248,7 @@
 				AA000888000000001 /* Utilities */,
 				AA0001BC00000001 /* Assets.xcassets */,
 				3F46D11441A5D7B9EBE3F118 /* AICapabilities */,
+				LBGRP0000000000000000001 /* Services */,
 				407D5B1A2D2782F08A574732 /* NovaAPIServer.swift */,
 				MISS0001B0000001 /* EthicalAIGuardian.swift */,
 			);
@@ -251,6 +270,10 @@
 				AA0001C200000001 /* WorkbookData.swift */,
 				AA0001C300000001 /* CellData.swift */,
 				AA0001C400000001 /* SheetData.swift */,
+				LBREF0000000000000000005 /* LLMBackendType.swift */,
+				LBREF0000000000000000006 /* LLMChatMessage.swift */,
+				LBREF0000000000000000007 /* BackendStatus.swift */,
+				LBREF0000000000000000008 /* LLMAppSettings.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -337,6 +360,7 @@
 				TST001000000018 /* IntegrationTests.swift */,
 				TST00100000001D /* FrameTests.swift */,
 				TST00100000001E /* EthicalAIGuardianTests.swift */,
+				LBREF0000000000000000009 /* LoadBalancerTests.swift */,
 				TST003000000002 /* TestData */,
 			);
 			path = ExcelExplorerTests;
@@ -351,6 +375,17 @@
 				TST00100000001C /* large_sample.csv */,
 			);
 			path = TestData;
+			sourceTree = "<group>";
+		};
+		LBGRP0000000000000000001 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				LBREF0000000000000000001 /* ModelRegistry.swift */,
+				LBREF0000000000000000002 /* OpenRouterProvider.swift */,
+				LBREF0000000000000000003 /* KeychainStore.swift */,
+				LBREF0000000000000000004 /* LLMBackendManager.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -536,6 +571,14 @@
 				18D483FD8A184E9D6D467245 /* SecurityUnified.swift in Sources */,
 				F3DF1AD9B06737645F408988 /* NovaAPIServer.swift in Sources */,
 				MISS0001A0000001 /* EthicalAIGuardian.swift in Sources */,
+				LBBLD0000000000000000001 /* ModelRegistry.swift in Sources */,
+				LBBLD0000000000000000002 /* OpenRouterProvider.swift in Sources */,
+				LBBLD0000000000000000003 /* KeychainStore.swift in Sources */,
+				LBBLD0000000000000000004 /* LLMBackendManager.swift in Sources */,
+				LBBLD0000000000000000005 /* LLMBackendType.swift in Sources */,
+				LBBLD0000000000000000006 /* LLMChatMessage.swift in Sources */,
+				LBBLD0000000000000000007 /* BackendStatus.swift in Sources */,
+				LBBLD0000000000000000008 /* LLMAppSettings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -563,6 +606,7 @@
 				TST001000000008 /* IntegrationTests.swift in Sources */,
 				TST00100000000D /* FrameTests.swift in Sources */,
 				TST00100000000E /* EthicalAIGuardianTests.swift in Sources */,
+				LBBLD0000000000000000009 /* LoadBalancerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
