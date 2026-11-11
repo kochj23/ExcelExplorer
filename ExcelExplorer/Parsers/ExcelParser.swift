@@ -134,6 +134,11 @@ class ExcelParser {
             return .formula(formulaString, result: .empty)
         }
 
+        // Inline strings carry their text in <is><t>, not in <v>
+        if cell.type == .inlineStr {
+            return cell.inlineString?.text.map { CellValue.string($0) } ?? .empty
+        }
+
         // Handle values
         guard let value = cell.value else {
             return .empty
@@ -167,6 +172,15 @@ class ExcelParser {
 
             case .error:
                 return .string("#ERROR")
+
+            case .number:
+                if let number = Double(value) {
+                    return .number(number)
+                }
+                return .string(value)
+
+            case .inlineStr:
+                return .string(value)
 
             @unknown default:
                 // Handle any future cell types

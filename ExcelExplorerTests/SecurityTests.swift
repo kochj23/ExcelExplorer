@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import NovaAIKit
 @testable import ExcelExplorer
 
 @MainActor
@@ -41,7 +42,8 @@ final class SecurityTests: XCTestCase {
                 XCTAssertEqual(stored, formula, "Formula should be stored as-is")
                 // Result should be an error string, not executed output
                 if case .string(let errorMsg) = result {
-                    XCTAssertEqual(errorMsg, "#ERROR", "Unknown formula should return #ERROR, not execute")
+                    XCTAssertTrue(errorMsg == "#ERROR" || errorMsg.hasPrefix("#NAME?"),
+                                  "Unknown formula should return an error value (#NAME?/#ERROR), not execute: \(errorMsg)")
                 } else if case .empty = result {
                     // Also acceptable: empty result
                 } else if case .number = result {
@@ -191,7 +193,7 @@ final class SecurityTests: XCTestCase {
 
         // These keys should NOT be stored in UserDefaults (should be in Keychain)
         let sensitiveKeys = [
-            "AIBackend_OpenAI_Key",
+            NovaAILegacySettings.openAIKeyKeys[0],
             "AIBackend_GoogleCloud_Key",
             "AIBackend_Azure_Key",
             "AIBackend_AWS_AccessKey",
@@ -236,7 +238,7 @@ final class SecurityTests: XCTestCase {
 
     func testNoHardcodedAPIKeysInSourceFiles() throws {
         // Scan all Swift source files for hardcoded API key patterns
-        let sourceDir = "/Volumes/Data/xcode/ExcelExplorer/ExcelExplorer"
+        let sourceDir = AITestSupport.appSources.path
         let fileManager = FileManager.default
         guard let enumerator = fileManager.enumerator(atPath: sourceDir) else {
             XCTFail("Cannot enumerate source directory")
@@ -266,7 +268,7 @@ final class SecurityTests: XCTestCase {
     }
 
     func testNoHardcodedPasswordsInSourceFiles() throws {
-        let sourceDir = "/Volumes/Data/xcode/ExcelExplorer/ExcelExplorer"
+        let sourceDir = AITestSupport.appSources.path
         let fileManager = FileManager.default
         guard let enumerator = fileManager.enumerator(atPath: sourceDir) else {
             XCTFail("Cannot enumerate source directory")
@@ -296,13 +298,14 @@ final class SecurityTests: XCTestCase {
         }
     }
 
-    // MARK: - AIBackendManager Keychain Usage
+    // MARK: - AI keys: Keychain only (NovaAIKit)
 
-    func testAIBackendManagerUsesKeychainForAPIKeys() {
-        // Verify that after init, no API keys are stored in UserDefaults
-        let defaults = UserDefaults.standard
+    func testAppAIMigrationLeavesNoAPIKeysInUserDefaults() {
+        // Plaintext keys an old version left in UserDefaults move to the Keychain (or are deleted) at startup.
+        let (defaults, cleanup) = AITestSupport.tempDefaults()
+        defer { cleanup() }
         let keychainKeys = [
-            "AIBackend_OpenAI_Key",
+            NovaAILegacySettings.openAIKeyKeys[0],
             "AIBackend_GoogleCloud_Key",
             "AIBackend_Azure_Key",
             "AIBackend_Azure_Endpoint",
@@ -311,37 +314,24 @@ final class SecurityTests: XCTestCase {
             "AIBackend_IBM_Key",
             "AIBackend_IBM_URL",
         ]
+        for key in keychainKeys { defaults.set("secret-\(key)", forKey: key) }
 
-        // After AIBackendManager initializes, all keys should be migrated OUT of UserDefaults
-        _ = AIBackendManager.shared // Trigger init
+        AppAI.migrateLegacy(AITestSupport.makeAI(), defaults: defaults)
 
         for key in keychainKeys {
             XCTAssertNil(defaults.string(forKey: key),
-                         "Key '\(key)' should NOT be in UserDefaults — must be in Keychain")
+                         "Key '\(key)' should NOT be in UserDefaults — must be in Keychain or deleted")
         }
     }
 
-    func testAIBackendManagerNonSensitiveDataInUserDefaults() {
-        // These non-sensitive configs ARE allowed in UserDefaults
-        let allowedKeys = [
-            "AIBackend_OllamaURL",
-            "AIBackend_TinyLLMURL",
-            "AIBackend_TinyChatURL",
-            "AIBackend_OpenWebUIURL",
-            "AIBackend_OllamaModel",
-            "AIBackend_Active",
-            "AIBackend_AWS_Region",
-        ]
-
-        // Just verify these are valid config keys (not testing values, just that the pattern exists)
-        for key in allowedKeys {
-            // These keys are expected to be strings or nil; they should NOT contain credentials
-            let value = UserDefaults.standard.string(forKey: key)
-            if let v = value {
-                XCTAssertFalse(v.hasPrefix("sk-"), "URL key '\(key)' should not contain an API key")
-                XCTAssertFalse(v.hasPrefix("AKIA"), "URL key '\(key)' should not contain an AWS key")
-            }
-        }
+    func testAISettingsInUserDefaultsHoldNoSecrets() throws {
+        // NovaAIKit persists settings (URLs, models, backend, on/off) — never keys.
+        var settings = NovaAISettings(backend: .openRouter)
+        settings.setURL("https://openrouter.ai/api/v1", for: .openRouter)
+        let data = try JSONEncoder().encode(settings)
+        let json = String(decoding: data, as: UTF8.self)
+        XCTAssertFalse(json.contains("sk-"), "settings must not contain API keys")
+        XCTAssertFalse(json.lowercased().contains("apikey"), "settings have no key field")
     }
 
     // MARK: - Nova API Server Loopback Only
@@ -349,7 +339,7 @@ final class SecurityTests: XCTestCase {
     func testNovaAPIServerBindsToLoopback() {
         // The Nova API server must bind to 127.0.0.1 only (not 0.0.0.0)
         // This is verified by reading the source code pattern
-        let serverFile = "/Volumes/Data/xcode/ExcelExplorer/ExcelExplorer/NovaAPIServer.swift"
+        let serverFile = AITestSupport.appSources.appendingPathComponent("NovaAPIServer.swift").path
         guard let content = try? String(contentsOfFile: serverFile, encoding: .utf8) else {
             XCTFail("Cannot read NovaAPIServer.swift")
             return
@@ -359,41 +349,25 @@ final class SecurityTests: XCTestCase {
         XCTAssertFalse(content.contains("0.0.0.0"), "Nova API server must NOT bind to all interfaces")
     }
 
-    // MARK: - EthicalAIGuardian Blocks Unsafe Prompts
+    // MARK: - AI replies are validated before use (replaces the old ethics guardian)
 
-    func testGuardianBlocksDrugContent() async {
-        let guardian = EthicalAIGuardian.shared
-        let violation = await guardian.checkContent(
-            "synthesize drug recipe for fentanyl production at home",
-            context: .textGeneration
-        )
-        XCTAssertNotNil(violation, "Guardian should block drug synthesis requests")
-        XCTAssertEqual(violation?.severity, .critical)
+    func testValidatorRejectsCodeInAnalysis() {
+        XCTAssertThrowsError(try ExcelAIValidators.analysisText("Execute: SELECT * FROM users"))
     }
 
-    func testGuardianBlocksMalwareContent() async {
-        let guardian = EthicalAIGuardian.shared
-        let violation = await guardian.checkContent(
-            "ransomware code that encrypts and demands payment via bitcoin",
-            context: .textGeneration
-        )
-        XCTAssertNotNil(violation, "Guardian should block malware creation requests")
+    func testValidatorRejectsMalformedFormula() {
+        XCTAssertThrowsError(try ExcelAIValidators.formula("rm -rf /"), "Only spreadsheet formulas are accepted")
     }
 
-    func testGuardianAllowsLegitimateAnalysis() async {
-        let guardian = EthicalAIGuardian.shared
-        let violation = await guardian.checkContent(
-            "Show me the average sales per quarter from column D",
-            context: .analysis
-        )
-        XCTAssertNil(violation, "Guardian should allow legitimate spreadsheet analysis")
+    func testValidatorAllowsLegitimateAnalysis() {
+        XCTAssertNoThrow(try ExcelAIValidators.analysisText("Show me the average sales per quarter from column D"))
     }
 
     // MARK: - Entitlements Validation
 
     func testSandboxDisabled() throws {
         // Read entitlements from source tree; retry on interrupted system call
-        let entitlementsPath = "/Volumes/Data/xcode/ExcelExplorer/ExcelExplorer/ExcelExplorer.entitlements"
+        let entitlementsPath = AITestSupport.appSources.appendingPathComponent("ExcelExplorer.entitlements").path
         var data: Data?
         for _ in 0..<3 {
             do {

@@ -8,6 +8,7 @@
 
 import Foundation
 import AppKit
+import NovaAIKit
 
 @MainActor
 class ActionableAI: ObservableObject {
@@ -15,8 +16,14 @@ class ActionableAI: ObservableObject {
     @Published var lastAction: String?
     @Published var actionResults: [ActionResult] = []
 
-    private let aiManager = AIBackendManager.shared
-    private let analyzer = AIDataAnalyzer()
+    private let ai: NovaAI
+    private let analyzer: AIDataAnalyzer
+
+    init(ai: NovaAI? = nil) {
+        let ai = ai ?? AppAI.shared
+        self.ai = ai
+        self.analyzer = AIDataAnalyzer(ai: ai)
+    }
 
     // MARK: - Parse Command and Execute
     func executeCommand(_ command: String, sheet: SheetData) async -> ActionResult {
@@ -59,65 +66,30 @@ class ActionableAI: ObservableObject {
         IMPORTANT: Choose actions you can EXECUTE, not just explain.
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are an action planner. Choose executable actions. Respond with JSON only.",
-                temperature: 0.2,
-                maxTokens: 300
-            )
-
-            if let plan = parseActionPlan(from: response) {
-                return plan
-            }
-        } catch {
-            print("Error determining action: \(error)")
-        }
-
-        // Default to summarize
-        return ActionPlan(
-            action: .summarize,
-            parameters: [:],
-            reasoning: "Providing data summary"
-        )
+        let fallback = ActionPlanJSON(action: Self.ruleBasedAction(for: command).rawValue, parameters: [:],
+                                      reasoning: "Chosen from the command's keywords")
+        let result = await ai.structured(
+            ActionPlanJSON.self,
+            NovaAIRequest(prompt: prompt,
+                          system: "You are an action planner. Choose executable actions. Respond with JSON only.",
+                          temperature: 0.2, maxTokens: 300),
+            validate: ExcelAIValidators.actionPlan
+        ) { fallback }
+        return ActionPlan(action: ActionType(rawValue: result.value.action) ?? .summarize,
+                          parameters: result.value.parameters, reasoning: result.value.reasoning)
     }
 
-    // MARK: - Parse Action Plan
-    private func parseActionPlan(from jsonString: String) -> ActionPlan? {
-        guard let jsonStart = jsonString.firstIndex(of: "{"),
-              let jsonEnd = jsonString.lastIndex(of: "}") else {
-            return nil
-        }
-
-        let jsonSubstring = jsonString[jsonStart...jsonEnd]
-        let jsonData = Data(jsonSubstring.utf8)
-
-        do {
-            let decoder = JSONDecoder()
-            let decoded = try decoder.decode(ActionPlanJSON.self, from: jsonData)
-
-            let actionType: ActionType
-            switch decoded.action.lowercased() {
-            case "summarize": actionType = .summarize
-            case "visualize": actionType = .visualize
-            case "filter": actionType = .filter
-            case "calculate": actionType = .calculate
-            case "export": actionType = .export
-            case "pivot": actionType = .pivot
-            case "forecast": actionType = .forecast
-            case "clean": actionType = .clean
-            default: actionType = .summarize
-            }
-
-            return ActionPlan(
-                action: actionType,
-                parameters: decoded.parameters,
-                reasoning: decoded.reasoning
-            )
-        } catch {
-            print("Error parsing action plan: \(error)")
-            return nil
-        }
+    /// Keyword routing used when AI is off or its plan is rejected.
+    nonisolated static func ruleBasedAction(for command: String) -> ActionType {
+        let c = command.lowercased()
+        if c.contains("chart") || c.contains("visual") || c.contains("graph") || c.contains("plot") { return .visualize }
+        if c.contains("forecast") || c.contains("predict") { return .forecast }
+        if c.contains("pivot") { return .pivot }
+        if c.contains("clean") || c.contains("duplicate") || c.contains("quality") { return .clean }
+        if c.contains("export") || c.contains("save as") { return .export }
+        if c.contains("filter") || c.contains("only rows") { return .filter }
+        if c.contains("sum") || c.contains("total") || c.contains("average") || c.contains("calculate") { return .calculate }
+        return .summarize
     }
 
     // MARK: - Perform Action
@@ -152,53 +124,27 @@ class ActionableAI: ObservableObject {
     // MARK: - Action Implementations
 
     private func executeSummarize(sheet: SheetData) async -> ActionResult {
-        do {
-            let summary = try await analyzer.summarizeSheet(sheet)
-            return ActionResult(
-                action: .summarize,
-                success: true,
-                output: summary,
-                data: nil
-            )
-        } catch {
-            return ActionResult(
-                action: .summarize,
-                success: false,
-                output: "Error: \(error.localizedDescription)",
-                data: nil
-            )
-        }
+        let summary = await analyzer.summarizeSheet(sheet)
+        return ActionResult(action: .summarize, success: true, output: summary.labeled, data: nil)
     }
 
     private func executeVisualize(sheet: SheetData, parameters: [String: String]) async -> ActionResult {
-        do {
-            let chartSuggestion = try await analyzer.suggestChart(sheet)
-            let output = """
-            ✅ Chart Created!
+        let result = await analyzer.suggestChart(sheet)
+        let chartSuggestion = result.value
+        let output = """
+        ✅ Chart Created!
 
-            Type: \(chartSuggestion.chartType.capitalized)
-            X-Axis: \(chartSuggestion.xColumn)
-            Y-Axis: \(chartSuggestion.yColumn)
+        Type: \(chartSuggestion.chartType.capitalized)
+        X-Axis: \(chartSuggestion.xColumn)
+        Y-Axis: \(chartSuggestion.yColumn)
 
-            \(chartSuggestion.reasoning)
+        \(chartSuggestion.reasoning)
 
-            View in: Advanced AI → Forecasting tab (⇧⌘B)
-            """
+        View in: Advanced AI → Forecasting tab (⇧⌘B)
 
-            return ActionResult(
-                action: .visualize,
-                success: true,
-                output: output,
-                data: chartSuggestion
-            )
-        } catch {
-            return ActionResult(
-                action: .visualize,
-                success: false,
-                output: "Error creating chart: \(error.localizedDescription)",
-                data: nil
-            )
-        }
+        — \(result.source.detailLabel)
+        """
+        return ActionResult(action: .visualize, success: true, output: output, data: chartSuggestion)
     }
 
     private func executeFilter(sheet: SheetData, parameters: [String: String]) async -> ActionResult {
@@ -254,48 +200,29 @@ class ActionableAI: ObservableObject {
 
     private func executeClean(sheet: SheetData, parameters: [String: String]) async -> ActionResult {
         // Data cleaning suggestions
-        do {
-            let cleaningPrompt = """
-            Analyze this data for quality issues:
+        let cleaningPrompt = """
+        Analyze this data for quality issues:
 
-            \(PromptBuilder.buildDataContext(sheet: sheet, sampleSize: 20))
+        \(PromptBuilder.buildDataContext(sheet: sheet, sampleSize: 20))
 
-            Find and list:
-            1. Duplicate rows
-            2. Missing values
-            3. Inconsistent formatting
-            4. Outliers
-            5. Invalid data types
+        Find and list:
+        1. Duplicate rows
+        2. Missing values
+        3. Inconsistent formatting
+        4. Outliers
+        5. Invalid data types
 
-            For each issue, provide:
-            - Issue description
-            - Row numbers affected
-            - Suggested fix
+        For each issue, provide:
+        - Issue description
+        - Row numbers affected
+        - Suggested fix
 
-            Keep response concise and actionable.
-            """
-
-            let response = try await aiManager.generate(
-                prompt: cleaningPrompt,
-                systemPrompt: "You are a data quality analyst. Be specific and actionable.",
-                temperature: 0.3,
-                maxTokens: 1000
-            )
-
-            return ActionResult(
-                action: .clean,
-                success: true,
-                output: "🧹 Data Quality Report:\n\n\(response)",
-                data: nil
-            )
-        } catch {
-            return ActionResult(
-                action: .clean,
-                success: false,
-                output: "Error analyzing data quality: \(error.localizedDescription)",
-                data: nil
-            )
-        }
+        Keep response concise and actionable.
+        """
+        let builtIn = BuiltInAnalysis.dataQuality(sheet)
+        let response = await ai.ask(cleaningPrompt, system: "You are a data quality analyst. Be specific and actionable.",
+                                    temperature: 0.3, maxTokens: 1000) { builtIn }
+        return ActionResult(action: .clean, success: true, output: "🧹 Data Quality Report:\n\n\(response.labeled)", data: nil)
     }
 }
 

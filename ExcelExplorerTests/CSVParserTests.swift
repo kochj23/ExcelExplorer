@@ -263,6 +263,6 @@ final class CSVParserTests: XCTestCase {
             return url
         }
         // Fallback to direct path during development
-        return URL(fileURLWithPath: "/Volumes/Data/xcode/ExcelExplorer/ExcelExplorerTests/TestData/\(filename)")
+        return AITestSupport.repoRoot.appendingPathComponent("ExcelExplorerTests/TestData/\(filename)")
     }
 }

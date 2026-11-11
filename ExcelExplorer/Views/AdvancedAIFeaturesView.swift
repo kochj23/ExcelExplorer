@@ -8,12 +8,27 @@
 
 import SwiftUI
 import Charts
+import NovaAIKit
 
 struct AdvancedAIFeaturesView: View {
     @EnvironmentObject var dataManager: ExcelDataManager
     @State private var selectedTab = 0
 
     var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Advanced AI Features").font(.headline)
+                Spacer()
+                NovaAIStatusIndicator(ai: AppAI.shared)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            advancedTabs
+        }
+        .frame(minWidth: 900, minHeight: 700)
+    }
+
+    private var advancedTabs: some View {
         TabView(selection: $selectedTab) {
             PredictiveAnalyticsView()
                 .tabItem {
@@ -45,7 +60,6 @@ struct AdvancedAIFeaturesView: View {
                 }
                 .tag(4)
         }
-        .frame(minWidth: 900, minHeight: 700)
     }
 }
 
@@ -280,6 +294,12 @@ struct PivotTableView: View {
                     .bold()
 
                 Spacer()
+
+                if currentPivot != nil, let source = pivotBuilder.lastSource {
+                    Text(source.detailLabel)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
 
                 Button("Clear") {
                     currentPivot = nil

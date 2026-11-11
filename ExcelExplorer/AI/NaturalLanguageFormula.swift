@@ -7,13 +7,18 @@
 //
 
 import Foundation
+import NovaAIKit
 
 @MainActor
 class NaturalLanguageFormula: ObservableObject {
     @Published var isProcessing = false
     @Published var lastFormula: String?
 
-    private let aiManager = AIBackendManager.shared
+    private let ai: NovaAI
+
+    init(ai: NovaAI? = nil) {
+        self.ai = ai ?? AppAI.shared
+    }
 
     /// Convert natural language to Excel formula
     func convertToFormula(_ naturalLanguage: String, context: SheetData) async -> FormulaResult {
@@ -36,29 +41,22 @@ class NaturalLanguageFormula: ObservableObject {
         Formula:
         """
 
-        do {
-            let formula = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are an Excel formula expert. Output ONLY the formula, no explanations.",
-                temperature: 0.1,
-                maxTokens: 200
-            )
-
-            let cleanedFormula = formula.trimmingCharacters(in: .whitespacesAndNewlines)
-            lastFormula = cleanedFormula
-
-            return FormulaResult(
-                formula: cleanedFormula,
-                explanation: "Generated from: '\(naturalLanguage)'",
-                success: true
-            )
-        } catch {
+        let builtIn = BuiltInAnalysis.formula(for: naturalLanguage, headers: context.headers) ?? ""
+        let result = await ai.ask(prompt, system: "You are an Excel formula expert. Output ONLY the formula, no explanations.",
+                                  temperature: 0.1, maxTokens: 200, validate: ExcelAIValidators.formula) { builtIn }
+        guard !result.value.isEmpty else {
             return FormulaResult(
                 formula: "",
-                explanation: "Failed to generate formula: \(error.localizedDescription)",
+                explanation: "Could not build a formula. Without AI, try \"sum/average/count/min/max of <column name or letter>\".",
                 success: false
             )
         }
+        lastFormula = result.value
+        return FormulaResult(
+            formula: result.value,
+            explanation: "Generated from: '\(naturalLanguage)' — \(result.source.detailLabel)",
+            success: true
+        )
     }
 
     /// Explain what a formula does
@@ -70,17 +68,10 @@ class NaturalLanguageFormula: ObservableObject {
         Be concise and clear. One sentence if possible.
         """
 
-        do {
-            let explanation = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You explain Excel formulas clearly.",
-                temperature: 0.3,
-                maxTokens: 150
-            )
-            return explanation
-        } catch {
-            return "Unable to explain formula"
-        }
+        return await ai.ask(prompt, system: "You explain Excel formulas clearly.", temperature: 0.3, maxTokens: 150,
+                            validate: ExcelAIValidators.shortText(maxCharacters: 600)) {
+            "Formula explanations need AI (it is off or unavailable)."
+        }.value
     }
 }
 

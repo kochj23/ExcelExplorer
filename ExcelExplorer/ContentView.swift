@@ -6,10 +6,10 @@
 //
 
 import SwiftUI
+import NovaAIKit
 
 struct ContentView: View {
     @EnvironmentObject var dataManager: ExcelDataManager
-    @ObservedObject var aiManager = AIBackendManager.shared
     @State private var showAIPanel = true
     @State private var showChartsPanel = false
     @State private var showSettings = false
@@ -46,7 +46,7 @@ struct ContentView: View {
             HSplitView {
                 // Main spreadsheet view
                 VStack(spacing: 0) {
-                    if let workbook = dataManager.workbook {
+                    if dataManager.workbook != nil {
                         // Formula bar
                         FormulaBar()
                             .frame(height: 40)
@@ -112,7 +112,7 @@ struct ContentView: View {
             SettingsView()
         }
         .sheet(isPresented: $showAISettings) {
-            AIBackendSelectionView()
+            AISettingsSheet()
         }
         .sheet(isPresented: $showAdvancedAI) {
             AdvancedAIFeaturesView()
@@ -233,7 +233,6 @@ struct FeatureRow: View {
 
 // MARK: - AI Status Header
 struct AIStatusHeader: View {
-    @ObservedObject var aiManager = AIBackendManager.shared
     @Binding var showAISettings: Bool
 
     var body: some View {
@@ -243,25 +242,7 @@ struct AIStatusHeader: View {
                 Text("Excel Explorer")
                     .font(.headline)
 
-                HStack(spacing: 8) {
-                    if aiManager.isOllamaAvailable || aiManager.isMLXAvailable ||
-                       aiManager.isTinyLLMAvailable || aiManager.isTinyChatAvailable ||
-                       aiManager.isOpenWebUIAvailable {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 8, height: 8)
-                        Text("AI: \(aiManager.activeBackend.rawValue)")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                    } else {
-                        Circle()
-                            .fill(Color.orange)
-                            .frame(width: 8, height: 8)
-                        Text("AI Not Available")
-                            .font(.caption)
-                            .foregroundColor(.orange)
-                    }
-                }
+                NovaAIStatusIndicator(ai: AppAI.shared)
             }
 
             Spacer()
@@ -277,5 +258,25 @@ struct AIStatusHeader: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(Color(nsColor: .controlBackgroundColor))
+    }
+}
+
+// MARK: - AI Settings Sheet
+/// The toolbar's "AI Config" sheet: the shared NovaAIKit settings (same as Settings › AI).
+struct AISettingsSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 0) {
+            NovaAISettingsView(ai: AppAI.shared, footer: AppAI.settingsFooter)
+            Divider()
+            HStack {
+                Spacer()
+                Button("Done") { dismiss() }
+                    .keyboardShortcut(.defaultAction)
+            }
+            .padding()
+        }
+        .frame(minWidth: 560, minHeight: 600)
     }
 }

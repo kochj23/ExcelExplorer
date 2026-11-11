@@ -82,7 +82,7 @@ struct SpreadsheetGridView: View {
                     }
                     .background(Color(nsColor: .textBackgroundColor))
                 }
-                .onChange(of: dataManager.currentSheet?.id) { _ in
+                .onChange(of: dataManager.currentSheet?.id) {
                     // Reset scroll and visible range when sheet changes
                     visibleRange = (0..<50, 0..<26)
                     selectedCell = nil

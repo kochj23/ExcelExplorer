@@ -8,6 +8,7 @@
 //
 
 import XCTest
+import NovaAIKit
 @testable import ExcelExplorer
 
 @MainActor
@@ -25,39 +26,29 @@ final class FrameTests: XCTestCase {
         XCTAssertNil(manager.error, "Manager should have no error on init")
     }
 
-    func testAIBackendManagerSingletonExists() {
-        let manager = AIBackendManager.shared
-        XCTAssertNotNil(manager, "AIBackendManager singleton should exist")
+    func testAppAISingletonExists() {
+        let ai = AppAI.shared
+        XCTAssertEqual(ai.configuration.appID, "excelexplorer", "AppAI must use the excelexplorer appID")
     }
 
-    func testAIBackendManagerSingletonIsSame() {
-        let a = AIBackendManager.shared
-        let b = AIBackendManager.shared
-        XCTAssertTrue(a === b, "AIBackendManager.shared should return the same instance")
+    func testAppAISingletonIsSame() {
+        XCTAssertTrue(AppAI.shared === AppAI.shared, "AppAI.shared should return the same instance")
     }
 
-    func testAIBackendManagerDefaultBackendIsOllama() {
-        let manager = AIBackendManager.shared
-        // Default active backend should be Ollama (unless previously changed)
-        // Just verify the property is accessible and returns a valid backend
-        XCTAssertNotNil(manager.activeBackend)
+    func testDefaultBackendIsAuto() {
+        // A fresh install starts on Auto (local first, then fleet, then keyed cloud).
+        XCTAssertEqual(NovaAISettings().backend, .auto)
+        XCTAssertEqual(NovaAIBackend.autoOrder.first, .ollama)
     }
 
-    func testAIBackendManagerDefaultURLs() {
-        let manager = AIBackendManager.shared
-        XCTAssertTrue(manager.ollamaServerURL.contains("11434"), "Ollama URL should contain port 11434")
+    func testDefaultURLs() {
+        XCTAssertTrue(NovaAISettings().url(for: .ollama).contains("11434"), "Ollama URL should contain port 11434")
     }
 
-    func testEthicalAIGuardianSingletonExists() {
-        let guardian = EthicalAIGuardian.shared
-        XCTAssertNotNil(guardian, "EthicalAIGuardian singleton should exist")
-        XCTAssertTrue(guardian.isEnabled, "Guardian should always be enabled")
-    }
-
-    func testEthicalAIGuardianSingletonIsSame() {
-        let a = EthicalAIGuardian.shared
-        let b = EthicalAIGuardian.shared
-        XCTAssertTrue(a === b, "EthicalAIGuardian.shared should return the same instance")
+    func testAIValidatorReplacesGuardianForAnalysis() {
+        // The old ethics guardian is gone; replies are now validated per feature (no code/commands in analyses).
+        XCTAssertThrowsError(try ExcelAIValidators.analysisText("import pandas as pd"))
+        XCTAssertNoThrow(try ExcelAIValidators.analysisText("Sales grew 12%."))
     }
 
     func testNovaAPIServerSingletonExists() {
@@ -196,46 +187,47 @@ final class FrameTests: XCTestCase {
         wait(for: [expectation], timeout: 2.0)
     }
 
-    // MARK: - AI Backend Enum
+    // MARK: - AI Backend Enum (NovaAIKit)
 
     func testAIBackendAllCases() {
-        let allCases = AIBackendManager.AIBackend.allCases
-        XCTAssertEqual(allCases.count, 10, "Should have 10 AI backend options")
+        XCTAssertEqual(NovaAIBackend.allCases.count, 9, "auto, ollama, mlx, tinyllm, tinychat, openwebui, novagateway, openrouter, openai")
     }
 
     func testAIBackendDescriptions() {
-        for backend in AIBackendManager.AIBackend.allCases {
-            XCTAssertFalse(backend.description.isEmpty, "Backend \(backend.rawValue) should have a description")
-            XCTAssertFalse(backend.setupInstructions.isEmpty, "Backend \(backend.rawValue) should have setup instructions")
+        for backend in NovaAIBackend.allCases {
+            XCTAssertFalse(backend.displayName.isEmpty, "Backend \(backend.rawValue) should have a name")
+            XCTAssertFalse(backend.summary.isEmpty, "Backend \(backend.rawValue) should have a summary")
         }
     }
 
-    // MARK: - AIError Descriptions
+    // MARK: - AI Error Descriptions (NovaAIError)
 
     func testAIErrorDescriptions() {
-        let errors: [AIError] = [
+        let errors: [NovaAIError] = [
+            .disabled,
             .noBackendAvailable,
-            .invalidURL,
-            .invalidResponse,
-            .httpError(500),
-            .noResponse,
-            .mlxNotImplemented,
-            .backendError("test message")
+            .invalidURL("x"),
+            .badResponse,
+            .httpStatus(500),
+            .emptyResponse,
+            .timedOut,
+            .missingKey(.openRouter),
+            .allBackendsFailed("test message"),
         ]
 
         for error in errors {
-            XCTAssertNotNil(error.errorDescription, "AIError should have a description")
-            XCTAssertFalse(error.errorDescription!.isEmpty, "AIError description should not be empty")
+            XCTAssertNotNil(error.errorDescription, "NovaAIError should have a description")
+            XCTAssertFalse(error.errorDescription!.isEmpty, "NovaAIError description should not be empty")
         }
     }
 
     func testAIErrorHTTPErrorContainsStatusCode() {
-        let error = AIError.httpError(403)
+        let error = NovaAIError.httpStatus(403)
         XCTAssertTrue(error.errorDescription!.contains("403"), "HTTP error description should contain status code")
     }
 
     func testAIErrorBackendErrorContainsMessage() {
-        let error = AIError.backendError("connection refused")
+        let error = NovaAIError.allBackendsFailed("connection refused")
         XCTAssertTrue(error.errorDescription!.contains("connection refused"), "Backend error should contain the message")
     }
 

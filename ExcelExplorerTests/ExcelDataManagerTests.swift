@@ -245,7 +245,7 @@ final class ExcelDataManagerTests: XCTestCase {
         let cell = manager.currentSheet?.getCell(row: 5, column: 0)
         if case .formula(_, let result) = cell?.value {
             if case .string(let errorStr) = result {
-                XCTAssertEqual(errorStr, "#ERROR")
+                XCTAssertTrue(errorStr.hasPrefix("#NAME?"), "Unknown function → Excel's #NAME? error, got \(errorStr)")
             } else {
                 XCTFail("Unknown formula should return #ERROR string")
             }

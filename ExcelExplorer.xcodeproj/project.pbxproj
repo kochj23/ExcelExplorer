@@ -7,23 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0F9D73F68AE6E56A188B5680 /* ImageGenerationUnified.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB93E30A5DC85ED5D045C672 /* ImageGenerationUnified.swift */; };
+		022755E6B483B4507812F8A3 /* AppAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 237BDD366320C51253E5E140 /* AppAI.swift */; };
 		14E72FD2F460550C5398EAA7 /* ChartImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45EDDE7F374510C26C3F35A3 /* ChartImageGenerator.swift */; };
-		18D483FD8A184E9D6D467245 /* SecurityUnified.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22171C6C15450C73EE3FC76C /* SecurityUnified.swift */; };
 		1E6EB0CBCEC540A3BD390ABB /* RelationshipDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D6B867CCEB34C639C3B73C4 /* RelationshipDiscovery.swift */; };
-		2CA4355CE2FA76F4C669D0D2 /* AnalysisUnified.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A7AE5B79730A33F3E83BC4A /* AnalysisUnified.swift */; };
-		53A13F4C3495FCDF4147DA41 /* UnifiedAICapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD4D5D42C62F1EE96D4C3AC /* UnifiedAICapabilities.swift */; };
+		45216E7399C3638B45093B2F /* AIFallbacks.swift in Sources */ = {isa = PBXBuildFile; fileRef = A429871539302F1001F53AA8 /* AIFallbacks.swift */; };
+		4FBB1126DE463E4742051134 /* AIKitAdoptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221B0F03A67A479C1372950F /* AIKitAdoptionTests.swift */; };
 		55C326CFA90E412B99C30C9C /* SentimentAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEFD29AB670741E3AC21D97C /* SentimentAnalyzer.swift */; };
-		63CD338A7D4A04FA669C034D /* VoiceUnified.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D555B42394CB1474E45736C /* VoiceUnified.swift */; };
 		6705320DD4AB4561B52553BD /* PredictiveAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2178237AF5D74D298430F1E4 /* PredictiveAnalytics.swift */; };
+		7C98A9CA91BAFCC2665AED7C /* NaturalLanguageFormula.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6488936DFF44F7F2675ECE15 /* NaturalLanguageFormula.swift */; };
 		8100DE23E96D4BBF894B0A7E /* ActionableAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37811C9B54B34E48BD83A821 /* ActionableAI.swift */; };
 		AA0001AA00000001 /* ExcelExplorerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001BA00000001 /* ExcelExplorerApp.swift */; };
 		AA0001AB00000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001BB00000001 /* ContentView.swift */; };
 		AA0001AC00000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0001BC00000001 /* Assets.xcassets */; };
 		AA0001AD00000001 /* CSVParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001BD00000001 /* CSVParser.swift */; };
 		AA0001AE00000001 /* ExcelParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001BE00000001 /* ExcelParser.swift */; };
-		AA0001AF00000001 /* AIBackendManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001BF00000001 /* AIBackendManager.swift */; };
-		AA0001B000000001 /* AIBackendManager+Generation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001C000000001 /* AIBackendManager+Generation.swift */; };
 		AA0001B100000001 /* ImageGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001C100000001 /* ImageGenerationService.swift */; };
 		AA0001B200000001 /* WorkbookData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001C200000001 /* WorkbookData.swift */; };
 		AA0001B300000001 /* CellData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001C300000001 /* CellData.swift */; };
@@ -41,16 +38,12 @@
 		AA0001CF00000001 /* SpreadsheetGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001DF00000001 /* SpreadsheetGridView.swift */; };
 		AA0001D000000001 /* FormulaBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001E000000001 /* FormulaBar.swift */; };
 		B74CF784ED894DEDB5B4C124 /* VoiceCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DF77777F5C459B8E60B171 /* VoiceCommands.swift */; };
+		C5944866C4E4AD2003E6C625 /* SpreadsheetExplainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63101AB1ABA6D93A7D0B5C4D /* SpreadsheetExplainer.swift */; };
+		D2C0E617C660DFCCD5712E87 /* NovaAIKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2FEA06819981AE72A6556740 /* NovaAIKit */; };
 		F3DF1AD9B06737645F408988 /* NovaAPIServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 407D5B1A2D2782F08A574732 /* NovaAPIServer.swift */; };
 		F4971186EE7B452CBA2032BF /* SmartPivotBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E48A4304B320405AA51C5491 /* SmartPivotBuilder.swift */; };
 		F932414002494AF8AA47F53B /* AdvancedAIFeaturesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1C7D39E1C64253A3236D4B /* AdvancedAIFeaturesView.swift */; };
-		MISS0001A0000001 /* EthicalAIGuardian.swift in Sources */ = {isa = PBXBuildFile; fileRef = MISS0001B0000001 /* EthicalAIGuardian.swift */; };
 		PKG002COREXLSX000002 /* CoreXLSX in Frameworks */ = {isa = PBXBuildFile; productRef = PKG002COREXLSX000001 /* CoreXLSX */; };
-		WGT001000000001 /* ExcelExplorerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGT001000000002 /* ExcelExplorerWidget.swift */; };
-		WGT001000000003 /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGT001000000004 /* WidgetData.swift */; };
-		WGT001000000005 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGT001000000006 /* SharedDataManager.swift */; };
-		WGT001000000007 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0001BC00000001 /* Assets.xcassets */; };
-		WGT001000000008 /* ExcelExplorer Widget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = WGT001000000009 /* ExcelExplorer Widget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		TST001000000001 /* CellDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TST001000000011 /* CellDataTests.swift */; };
 		TST001000000002 /* SheetDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TST001000000012 /* SheetDataTests.swift */; };
 		TST001000000003 /* WorkbookDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TST001000000013 /* WorkbookDataTests.swift */; };
@@ -59,37 +52,32 @@
 		TST001000000006 /* ExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TST001000000016 /* ExportTests.swift */; };
 		TST001000000007 /* SecurityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TST001000000017 /* SecurityTests.swift */; };
 		TST001000000008 /* IntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TST001000000018 /* IntegrationTests.swift */; };
-		TST00100000000D /* FrameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TST00100000001D /* FrameTests.swift */; };
-		TST00100000000E /* EthicalAIGuardianTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TST00100000001E /* EthicalAIGuardianTests.swift */; };
 		TST001000000009 /* sample.csv in Resources */ = {isa = PBXBuildFile; fileRef = TST001000000019 /* sample.csv */; };
 		TST00100000000A /* quoted.csv in Resources */ = {isa = PBXBuildFile; fileRef = TST00100000001A /* quoted.csv */; };
 		TST00100000000B /* empty.csv in Resources */ = {isa = PBXBuildFile; fileRef = TST00100000001B /* empty.csv */; };
 		TST00100000000C /* large_sample.csv in Resources */ = {isa = PBXBuildFile; fileRef = TST00100000001C /* large_sample.csv */; };
-		LBBLD0000000000000000001 /* ModelRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000001 /* ModelRegistry.swift */; };
-		LBBLD0000000000000000002 /* OpenRouterProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000002 /* OpenRouterProvider.swift */; };
-		LBBLD0000000000000000003 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000003 /* KeychainStore.swift */; };
-		LBBLD0000000000000000004 /* LLMBackendManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000004 /* LLMBackendManager.swift */; };
-		LBBLD0000000000000000005 /* LLMBackendType.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000005 /* LLMBackendType.swift */; };
-		LBBLD0000000000000000006 /* LLMChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000006 /* LLMChatMessage.swift */; };
-		LBBLD0000000000000000007 /* BackendStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000007 /* BackendStatus.swift */; };
-		LBBLD0000000000000000008 /* LLMAppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000008 /* LLMAppSettings.swift */; };
-		LBBLD0000000000000000009 /* LoadBalancerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LBREF0000000000000000009 /* LoadBalancerTests.swift */; };
+		TST00100000000D /* FrameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TST00100000001D /* FrameTests.swift */; };
+		WGT001000000001 /* ExcelExplorerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGT001000000002 /* ExcelExplorerWidget.swift */; };
+		WGT001000000003 /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGT001000000004 /* WidgetData.swift */; };
+		WGT001000000005 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = WGT001000000006 /* SharedDataManager.swift */; };
+		WGT001000000007 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0001BC00000001 /* Assets.xcassets */; };
+		WGT001000000008 /* ExcelExplorer Widget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = WGT001000000009 /* ExcelExplorer Widget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		WGT002000000001 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AA000111000000002 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = WGT001000000010;
-			remoteInfo = "ExcelExplorer Widget";
-		};
 		TST002000000001 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AA000111000000002 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = AA000AAA00000002;
 			remoteInfo = ExcelExplorer;
+		};
+		WGT002000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA000111000000002 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = WGT001000000010;
+			remoteInfo = "ExcelExplorer Widget";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -109,23 +97,21 @@
 
 /* Begin PBXFileReference section */
 		2178237AF5D74D298430F1E4 /* PredictiveAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PredictiveAnalytics.swift; sourceTree = "<group>"; };
-		22171C6C15450C73EE3FC76C /* SecurityUnified.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SecurityUnified.swift; path = AICapabilities/SecurityUnified.swift; sourceTree = "<group>"; };
-		2BD4D5D42C62F1EE96D4C3AC /* UnifiedAICapabilities.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UnifiedAICapabilities.swift; path = AICapabilities/UnifiedAICapabilities.swift; sourceTree = "<group>"; };
+		221B0F03A67A479C1372950F /* AIKitAdoptionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIKitAdoptionTests.swift; sourceTree = "<group>"; };
+		237BDD366320C51253E5E140 /* AppAI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppAI.swift; sourceTree = "<group>"; };
 		37811C9B54B34E48BD83A821 /* ActionableAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionableAI.swift; sourceTree = "<group>"; };
-		3A7AE5B79730A33F3E83BC4A /* AnalysisUnified.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AnalysisUnified.swift; path = AICapabilities/AnalysisUnified.swift; sourceTree = "<group>"; };
 		407D5B1A2D2782F08A574732 /* NovaAPIServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NovaAPIServer.swift; sourceTree = "<group>"; };
-		MISS0001B0000001 /* EthicalAIGuardian.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EthicalAIGuardian.swift; sourceTree = "<group>"; };
 		45EDDE7F374510C26C3F35A3 /* ChartImageGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartImageGenerator.swift; sourceTree = "<group>"; };
-		8D555B42394CB1474E45736C /* VoiceUnified.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceUnified.swift; path = AICapabilities/VoiceUnified.swift; sourceTree = "<group>"; };
+		63101AB1ABA6D93A7D0B5C4D /* SpreadsheetExplainer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SpreadsheetExplainer.swift; sourceTree = "<group>"; };
+		6488936DFF44F7F2675ECE15 /* NaturalLanguageFormula.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NaturalLanguageFormula.swift; sourceTree = "<group>"; };
 		8D6B867CCEB34C639C3B73C4 /* RelationshipDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelationshipDiscovery.swift; sourceTree = "<group>"; };
 		9B1C7D39E1C64253A3236D4B /* AdvancedAIFeaturesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedAIFeaturesView.swift; sourceTree = "<group>"; };
+		A429871539302F1001F53AA8 /* AIFallbacks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIFallbacks.swift; sourceTree = "<group>"; };
 		AA0001BA00000001 /* ExcelExplorerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcelExplorerApp.swift; sourceTree = "<group>"; };
 		AA0001BB00000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AA0001BC00000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA0001BD00000001 /* CSVParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVParser.swift; sourceTree = "<group>"; };
 		AA0001BE00000001 /* ExcelParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcelParser.swift; sourceTree = "<group>"; };
-		AA0001BF00000001 /* AIBackendManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBackendManager.swift; sourceTree = "<group>"; };
-		AA0001C000000001 /* AIBackendManager+Generation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AIBackendManager+Generation.swift"; sourceTree = "<group>"; };
 		AA0001C100000001 /* ImageGenerationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGenerationService.swift; sourceTree = "<group>"; };
 		AA0001C200000001 /* WorkbookData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkbookData.swift; sourceTree = "<group>"; };
 		AA0001C300000001 /* CellData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellData.swift; sourceTree = "<group>"; };
@@ -145,16 +131,9 @@
 		AA0001E100000001 /* ExcelExplorer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ExcelExplorer.entitlements; sourceTree = "<group>"; };
 		AA0001E200000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA000AAA00000001 /* ExcelExplorer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ExcelExplorer.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		BB93E30A5DC85ED5D045C672 /* ImageGenerationUnified.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ImageGenerationUnified.swift; path = AICapabilities/ImageGenerationUnified.swift; sourceTree = "<group>"; };
 		BEFD29AB670741E3AC21D97C /* SentimentAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentimentAnalyzer.swift; sourceTree = "<group>"; };
 		C0DF77777F5C459B8E60B171 /* VoiceCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceCommands.swift; sourceTree = "<group>"; };
 		E48A4304B320405AA51C5491 /* SmartPivotBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartPivotBuilder.swift; sourceTree = "<group>"; };
-		WGT001000000002 /* ExcelExplorerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcelExplorerWidget.swift; sourceTree = "<group>"; };
-		WGT001000000004 /* WidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetData.swift; sourceTree = "<group>"; };
-		WGT001000000006 /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
-		WGT001000000009 /* ExcelExplorer Widget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "ExcelExplorer Widget.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
-		WGT001000000011 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		WGT001000000012 /* ExcelExplorer_Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ExcelExplorer_Widget.entitlements; sourceTree = "<group>"; };
 		TST001000000010 /* ExcelExplorerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExcelExplorerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		TST001000000011 /* CellDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellDataTests.swift; sourceTree = "<group>"; };
 		TST001000000012 /* SheetDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetDataTests.swift; sourceTree = "<group>"; };
@@ -164,21 +143,17 @@
 		TST001000000016 /* ExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportTests.swift; sourceTree = "<group>"; };
 		TST001000000017 /* SecurityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityTests.swift; sourceTree = "<group>"; };
 		TST001000000018 /* IntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationTests.swift; sourceTree = "<group>"; };
-		TST00100000001D /* FrameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameTests.swift; sourceTree = "<group>"; };
-		TST00100000001E /* EthicalAIGuardianTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EthicalAIGuardianTests.swift; sourceTree = "<group>"; };
 		TST001000000019 /* sample.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = sample.csv; sourceTree = "<group>"; };
 		TST00100000001A /* quoted.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = quoted.csv; sourceTree = "<group>"; };
 		TST00100000001B /* empty.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = empty.csv; sourceTree = "<group>"; };
 		TST00100000001C /* large_sample.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = large_sample.csv; sourceTree = "<group>"; };
-		LBREF0000000000000000001 /* ModelRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelRegistry.swift; sourceTree = "<group>"; };
-		LBREF0000000000000000002 /* OpenRouterProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterProvider.swift; sourceTree = "<group>"; };
-		LBREF0000000000000000003 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
-		LBREF0000000000000000004 /* LLMBackendManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMBackendManager.swift; sourceTree = "<group>"; };
-		LBREF0000000000000000005 /* LLMBackendType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMBackendType.swift; sourceTree = "<group>"; };
-		LBREF0000000000000000006 /* LLMChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMChatMessage.swift; sourceTree = "<group>"; };
-		LBREF0000000000000000007 /* BackendStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendStatus.swift; sourceTree = "<group>"; };
-		LBREF0000000000000000008 /* LLMAppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMAppSettings.swift; sourceTree = "<group>"; };
-		LBREF0000000000000000009 /* LoadBalancerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadBalancerTests.swift; sourceTree = "<group>"; };
+		TST00100000001D /* FrameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameTests.swift; sourceTree = "<group>"; };
+		WGT001000000002 /* ExcelExplorerWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcelExplorerWidget.swift; sourceTree = "<group>"; };
+		WGT001000000004 /* WidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetData.swift; sourceTree = "<group>"; };
+		WGT001000000006 /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
+		WGT001000000009 /* ExcelExplorer Widget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "ExcelExplorer Widget.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		WGT001000000011 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		WGT001000000012 /* ExcelExplorer_Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ExcelExplorer_Widget.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -187,17 +162,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				PKG002COREXLSX000002 /* CoreXLSX in Frameworks */,
+				D2C0E617C660DFCCD5712E87 /* NovaAIKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		WGT004000000001 /* Frameworks */ = {
+		TST005000000002 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		TST005000000002 /* Frameworks */ = {
+		WGT004000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -210,11 +186,6 @@
 		3F46D11441A5D7B9EBE3F118 /* AICapabilities */ = {
 			isa = PBXGroup;
 			children = (
-				2BD4D5D42C62F1EE96D4C3AC /* UnifiedAICapabilities.swift */,
-				BB93E30A5DC85ED5D045C672 /* ImageGenerationUnified.swift */,
-				8D555B42394CB1474E45736C /* VoiceUnified.swift */,
-				3A7AE5B79730A33F3E83BC4A /* AnalysisUnified.swift */,
-				22171C6C15450C73EE3FC76C /* SecurityUnified.swift */,
 			);
 			name = AICapabilities;
 			sourceTree = "<group>";
@@ -237,8 +208,6 @@
 				AA0001BA00000001 /* ExcelExplorerApp.swift */,
 				AA0001BB00000001 /* ContentView.swift */,
 				AA0001C800000001 /* ExcelDataManager.swift */,
-				AA0001BF00000001 /* AIBackendManager.swift */,
-				AA0001C000000001 /* AIBackendManager+Generation.swift */,
 				AA0001C100000001 /* ImageGenerationService.swift */,
 				AA000333000000001 /* Parsers */,
 				AA000444000000001 /* Models */,
@@ -250,7 +219,6 @@
 				3F46D11441A5D7B9EBE3F118 /* AICapabilities */,
 				LBGRP0000000000000000001 /* Services */,
 				407D5B1A2D2782F08A574732 /* NovaAPIServer.swift */,
-				MISS0001B0000001 /* EthicalAIGuardian.swift */,
 			);
 			path = ExcelExplorer;
 			sourceTree = "<group>";
@@ -270,10 +238,6 @@
 				AA0001C200000001 /* WorkbookData.swift */,
 				AA0001C300000001 /* CellData.swift */,
 				AA0001C400000001 /* SheetData.swift */,
-				LBREF0000000000000000005 /* LLMBackendType.swift */,
-				LBREF0000000000000000006 /* LLMChatMessage.swift */,
-				LBREF0000000000000000007 /* BackendStatus.swift */,
-				LBREF0000000000000000008 /* LLMAppSettings.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -312,6 +276,10 @@
 				C0DF77777F5C459B8E60B171 /* VoiceCommands.swift */,
 				BEFD29AB670741E3AC21D97C /* SentimentAnalyzer.swift */,
 				45EDDE7F374510C26C3F35A3 /* ChartImageGenerator.swift */,
+				237BDD366320C51253E5E140 /* AppAI.swift */,
+				A429871539302F1001F53AA8 /* AIFallbacks.swift */,
+				6488936DFF44F7F2675ECE15 /* NaturalLanguageFormula.swift */,
+				63101AB1ABA6D93A7D0B5C4D /* SpreadsheetExplainer.swift */,
 			);
 			path = AI;
 			sourceTree = "<group>";
@@ -335,16 +303,11 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		WGT005000000001 /* ExcelExplorer Widget */ = {
+		LBGRP0000000000000000001 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				WGT001000000002 /* ExcelExplorerWidget.swift */,
-				WGT001000000004 /* WidgetData.swift */,
-				WGT001000000006 /* SharedDataManager.swift */,
-				WGT001000000011 /* Info.plist */,
-				WGT001000000012 /* ExcelExplorer_Widget.entitlements */,
 			);
-			path = "ExcelExplorer Widget";
+			path = Services;
 			sourceTree = "<group>";
 		};
 		TST003000000001 /* ExcelExplorerTests */ = {
@@ -359,9 +322,8 @@
 				TST001000000017 /* SecurityTests.swift */,
 				TST001000000018 /* IntegrationTests.swift */,
 				TST00100000001D /* FrameTests.swift */,
-				TST00100000001E /* EthicalAIGuardianTests.swift */,
-				LBREF0000000000000000009 /* LoadBalancerTests.swift */,
 				TST003000000002 /* TestData */,
+				221B0F03A67A479C1372950F /* AIKitAdoptionTests.swift */,
 			);
 			path = ExcelExplorerTests;
 			sourceTree = "<group>";
@@ -377,15 +339,16 @@
 			path = TestData;
 			sourceTree = "<group>";
 		};
-		LBGRP0000000000000000001 /* Services */ = {
+		WGT005000000001 /* ExcelExplorer Widget */ = {
 			isa = PBXGroup;
 			children = (
-				LBREF0000000000000000001 /* ModelRegistry.swift */,
-				LBREF0000000000000000002 /* OpenRouterProvider.swift */,
-				LBREF0000000000000000003 /* KeychainStore.swift */,
-				LBREF0000000000000000004 /* LLMBackendManager.swift */,
+				WGT001000000002 /* ExcelExplorerWidget.swift */,
+				WGT001000000004 /* WidgetData.swift */,
+				WGT001000000006 /* SharedDataManager.swift */,
+				WGT001000000011 /* Info.plist */,
+				WGT001000000012 /* ExcelExplorer_Widget.entitlements */,
 			);
-			path = Services;
+			path = "ExcelExplorer Widget";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -408,31 +371,11 @@
 			name = ExcelExplorer;
 			packageProductDependencies = (
 				PKG002COREXLSX000001 /* CoreXLSX */,
-				5A500594D158254476C03045 /* MLX */,
-				2510EFF5F3533911A9785C74 /* MLXNN */,
-				9752B9EA1467B60F3CDBA6E2 /* MLXLLM */,
-				E63633316FBBDD586CFAEBBF /* MLXLMCommon */,
+				2FEA06819981AE72A6556740 /* NovaAIKit */,
 			);
 			productName = ExcelExplorer;
 			productReference = AA000AAA00000001 /* ExcelExplorer.app */;
 			productType = "com.apple.product-type.application";
-		};
-		WGT001000000010 /* ExcelExplorer Widget */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = WGT006000000001 /* Build configuration list for PBXNativeTarget "ExcelExplorer Widget" */;
-			buildPhases = (
-				WGT007000000001 /* Sources */,
-				WGT004000000001 /* Frameworks */,
-				WGT008000000001 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "ExcelExplorer Widget";
-			productName = "ExcelExplorer Widget";
-			productReference = WGT001000000009 /* ExcelExplorer Widget.appex */;
-			productType = "com.apple.product-type.app-extension";
 		};
 		TST004000000001 /* ExcelExplorerTests */ = {
 			isa = PBXNativeTarget;
@@ -452,6 +395,23 @@
 			productReference = TST001000000010 /* ExcelExplorerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		WGT001000000010 /* ExcelExplorer Widget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = WGT006000000001 /* Build configuration list for PBXNativeTarget "ExcelExplorer Widget" */;
+			buildPhases = (
+				WGT007000000001 /* Sources */,
+				WGT004000000001 /* Frameworks */,
+				WGT008000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "ExcelExplorer Widget";
+			productName = "ExcelExplorer Widget";
+			productReference = WGT001000000009 /* ExcelExplorer Widget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -465,12 +425,12 @@
 					AA000AAA00000002 = {
 						CreatedOnToolsVersion = 15.0;
 					};
-					WGT001000000010 = {
-						CreatedOnToolsVersion = 15.0;
-					};
 					TST004000000001 = {
 						CreatedOnToolsVersion = 15.0;
 						TestTargetID = AA000AAA00000002;
+					};
+					WGT001000000010 = {
+						CreatedOnToolsVersion = 15.0;
 					};
 				};
 			};
@@ -485,8 +445,7 @@
 			mainGroup = AA000111000000001;
 			packageReferences = (
 				PKG001COREXLSX000001 /* XCRemoteSwiftPackageReference "CoreXLSX" */,
-				6AE2CF0E11042C0958404CF1 /* XCRemoteSwiftPackageReference "mlx-swift" */,
-				CD4A3B77257284A10E3A0466 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */,
+				268E4A14B70AD69E6B5BF3B0 /* XCRemoteSwiftPackageReference "NovaAIKit" */,
 			);
 			productRefGroup = AA000AAB00000001 /* Products */;
 			projectDirPath = "";
@@ -508,14 +467,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		WGT008000000001 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				WGT001000000007 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		TST005000000003 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -524,6 +475,14 @@
 				TST00100000000A /* quoted.csv in Resources */,
 				TST00100000000B /* empty.csv in Resources */,
 				TST00100000000C /* large_sample.csv in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WGT008000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				WGT001000000007 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -544,8 +503,6 @@
 				AA0001AB00000001 /* ContentView.swift in Sources */,
 				AA0001AD00000001 /* CSVParser.swift in Sources */,
 				AA0001AE00000001 /* ExcelParser.swift in Sources */,
-				AA0001AF00000001 /* AIBackendManager.swift in Sources */,
-				AA0001B000000001 /* AIBackendManager+Generation.swift in Sources */,
 				AA0001B100000001 /* ImageGenerationService.swift in Sources */,
 				AA0001B200000001 /* WorkbookData.swift in Sources */,
 				AA0001B300000001 /* CellData.swift in Sources */,
@@ -564,31 +521,11 @@
 				AA0001CE00000001 /* SettingsView.swift in Sources */,
 				AA0001CF00000001 /* SpreadsheetGridView.swift in Sources */,
 				AA0001D000000001 /* FormulaBar.swift in Sources */,
-				53A13F4C3495FCDF4147DA41 /* UnifiedAICapabilities.swift in Sources */,
-				0F9D73F68AE6E56A188B5680 /* ImageGenerationUnified.swift in Sources */,
-				63CD338A7D4A04FA669C034D /* VoiceUnified.swift in Sources */,
-				2CA4355CE2FA76F4C669D0D2 /* AnalysisUnified.swift in Sources */,
-				18D483FD8A184E9D6D467245 /* SecurityUnified.swift in Sources */,
 				F3DF1AD9B06737645F408988 /* NovaAPIServer.swift in Sources */,
-				MISS0001A0000001 /* EthicalAIGuardian.swift in Sources */,
-				LBBLD0000000000000000001 /* ModelRegistry.swift in Sources */,
-				LBBLD0000000000000000002 /* OpenRouterProvider.swift in Sources */,
-				LBBLD0000000000000000003 /* KeychainStore.swift in Sources */,
-				LBBLD0000000000000000004 /* LLMBackendManager.swift in Sources */,
-				LBBLD0000000000000000005 /* LLMBackendType.swift in Sources */,
-				LBBLD0000000000000000006 /* LLMChatMessage.swift in Sources */,
-				LBBLD0000000000000000007 /* BackendStatus.swift in Sources */,
-				LBBLD0000000000000000008 /* LLMAppSettings.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		WGT007000000001 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				WGT001000000001 /* ExcelExplorerWidget.swift in Sources */,
-				WGT001000000003 /* WidgetData.swift in Sources */,
-				WGT001000000005 /* SharedDataManager.swift in Sources */,
+				022755E6B483B4507812F8A3 /* AppAI.swift in Sources */,
+				45216E7399C3638B45093B2F /* AIFallbacks.swift in Sources */,
+				7C98A9CA91BAFCC2665AED7C /* NaturalLanguageFormula.swift in Sources */,
+				C5944866C4E4AD2003E6C625 /* SpreadsheetExplainer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -605,23 +542,32 @@
 				TST001000000007 /* SecurityTests.swift in Sources */,
 				TST001000000008 /* IntegrationTests.swift in Sources */,
 				TST00100000000D /* FrameTests.swift in Sources */,
-				TST00100000000E /* EthicalAIGuardianTests.swift in Sources */,
-				LBBLD0000000000000000009 /* LoadBalancerTests.swift in Sources */,
+				4FBB1126DE463E4742051134 /* AIKitAdoptionTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		WGT007000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				WGT001000000001 /* ExcelExplorerWidget.swift in Sources */,
+				WGT001000000003 /* WidgetData.swift in Sources */,
+				WGT001000000005 /* SharedDataManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		WGT002000000002 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = WGT001000000010 /* ExcelExplorer Widget */;
-			targetProxy = WGT002000000001 /* PBXContainerItemProxy */;
-		};
 		TST002000000002 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = AA000AAA00000002 /* ExcelExplorer */;
 			targetProxy = TST002000000001 /* PBXContainerItemProxy */;
+		};
+		WGT002000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = WGT001000000010 /* ExcelExplorer Widget */;
+			targetProxy = WGT002000000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -748,12 +694,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = ExcelExplorer/ExcelExplorer.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = QRRCB8HB3W;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -767,7 +712,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.ExcelExplorer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -779,12 +724,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = ExcelExplorer/ExcelExplorer.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = QRRCB8HB3W;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -798,67 +742,9 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.2.0;
+				MARKETING_VERSION = 1.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.ExcelExplorer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
-		WGT006000000002 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_ENTITLEMENTS = "ExcelExplorer Widget/ExcelExplorer_Widget.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = QRRCB8HB3W;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "ExcelExplorer Widget/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "ExcelExplorer Widget";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Jordan Koch. All rights reserved.";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@executable_path/../../../../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.ExcelExplorer.Widget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		WGT006000000003 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_ENTITLEMENTS = "ExcelExplorer Widget/ExcelExplorer_Widget.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = QRRCB8HB3W;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "ExcelExplorer Widget/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "ExcelExplorer Widget";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Jordan Koch. All rights reserved.";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@executable_path/../../../../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.ExcelExplorer.Widget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -869,7 +755,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = QRRCB8HB3W;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
@@ -887,7 +773,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = QRRCB8HB3W;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
@@ -897,6 +783,60 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ExcelExplorer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ExcelExplorer";
+			};
+			name = Release;
+		};
+		WGT006000000002 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "ExcelExplorer Widget/ExcelExplorer_Widget.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = QRRCB8HB3W;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "ExcelExplorer Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "ExcelExplorer Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Jordan Koch. All rights reserved.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.ExcelExplorer.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		WGT006000000003 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "ExcelExplorer Widget/ExcelExplorer_Widget.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = QRRCB8HB3W;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "ExcelExplorer Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "ExcelExplorer Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Jordan Koch. All rights reserved.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.ExcelExplorer.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -921,15 +861,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		WGT006000000001 /* Build configuration list for PBXNativeTarget "ExcelExplorer Widget" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				WGT006000000002 /* Debug */,
-				WGT006000000003 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		TST006000000001 /* Build configuration list for PBXNativeTarget "ExcelExplorerTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -939,23 +870,24 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		WGT006000000001 /* Build configuration list for PBXNativeTarget "ExcelExplorer Widget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				WGT006000000002 /* Debug */,
+				WGT006000000003 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		6AE2CF0E11042C0958404CF1 /* XCRemoteSwiftPackageReference "mlx-swift" */ = {
+		268E4A14B70AD69E6B5BF3B0 /* XCRemoteSwiftPackageReference "NovaAIKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ml-explore/mlx-swift";
+			repositoryURL = "https://github.com/kochj23/NovaAIKit.git";
 			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 0.30.3;
-			};
-		};
-		CD4A3B77257284A10E3A0466 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ml-explore/mlx-swift-lm";
-			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 2.30.3;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
 			};
 		};
 		PKG001COREXLSX000001 /* XCRemoteSwiftPackageReference "CoreXLSX" */ = {
@@ -969,25 +901,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		2510EFF5F3533911A9785C74 /* MLXNN */ = {
+		2FEA06819981AE72A6556740 /* NovaAIKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 6AE2CF0E11042C0958404CF1 /* XCRemoteSwiftPackageReference "mlx-swift" */;
-			productName = MLXNN;
-		};
-		5A500594D158254476C03045 /* MLX */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 6AE2CF0E11042C0958404CF1 /* XCRemoteSwiftPackageReference "mlx-swift" */;
-			productName = MLX;
-		};
-		9752B9EA1467B60F3CDBA6E2 /* MLXLLM */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = CD4A3B77257284A10E3A0466 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
-			productName = MLXLLM;
-		};
-		E63633316FBBDD586CFAEBBF /* MLXLMCommon */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = CD4A3B77257284A10E3A0466 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
-			productName = MLXLMCommon;
+			package = 268E4A14B70AD69E6B5BF3B0 /* XCRemoteSwiftPackageReference "NovaAIKit" */;
+			productName = NovaAIKit;
 		};
 		PKG002COREXLSX000001 /* CoreXLSX */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -13,8 +13,6 @@ class AIDataCleaner: ObservableObject {
     @Published var isProcessing = false
     @Published var cleaningResults: [CleaningResult] = []
 
-    private let aiManager = AIBackendManager.shared
-
     /// Clean data using AI analysis
     func cleanData(sheet: SheetData) async -> DataCleaningReport {
         isProcessing = true

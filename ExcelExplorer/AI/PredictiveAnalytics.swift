@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import NovaAIKit
 import SwiftUI
 
 // MARK: - Predictive Analytics Engine
@@ -16,7 +17,11 @@ class PredictiveAnalytics: ObservableObject {
     @Published var isAnalyzing: Bool = false
     @Published var error: String?
 
-    private let aiManager = AIBackendManager.shared
+    private let ai: NovaAI
+
+    init(ai: NovaAI? = nil) {
+        self.ai = ai ?? AppAI.shared
+    }
 
     // MARK: - Time Series Forecasting
     func generateForecast(
@@ -41,7 +46,6 @@ class PredictiveAnalytics: ObservableObject {
 
         // Generate forecasts
         var predictions: [ForecastPoint] = []
-        let lastValue = data.last ?? 0
 
         for i in 1...periods {
             let timeStep = Double(data.count + i)
@@ -181,16 +185,10 @@ class PredictiveAnalytics: ObservableObject {
         3. Confidence level and risks
         """
 
-        do {
-            return try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a data analyst providing forecast interpretations.",
-                temperature: 0.3,
-                maxTokens: 200
-            )
-        } catch {
-            return "The forecast shows a \(trend) trend with an expected \(String(format: "%.1f", abs(percentChange)))% \(percentChange >= 0 ? "increase" : "decrease") based on historical patterns."
-        }
+        let builtIn = "The forecast shows a \(trend) trend with an expected \(String(format: "%.1f", abs(percentChange)))% \(percentChange >= 0 ? "increase" : "decrease") based on historical patterns."
+        return await ai.ask(prompt, system: "You are a data analyst providing forecast interpretations.",
+                            temperature: 0.3, maxTokens: 200,
+                            validate: ExcelAIValidators.forecastText(source: prompt)) { builtIn }.labeled
     }
 
     // MARK: - Anomaly Detection

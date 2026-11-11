@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import NovaAIKit
 
 @MainActor
 class RelationshipDiscovery: ObservableObject {
@@ -14,7 +15,11 @@ class RelationshipDiscovery: ObservableObject {
     @Published var isAnalyzing: Bool = false
     @Published var error: String?
 
-    private let aiManager = AIBackendManager.shared
+    private let ai: NovaAI
+
+    init(ai: NovaAI? = nil) {
+        self.ai = ai ?? AppAI.shared
+    }
 
     // MARK: - Discover Relationships
     func discoverRelationships(workbook: WorkbookData) async {
@@ -237,16 +242,9 @@ class RelationshipDiscovery: ObservableObject {
         3. Recommendations for data organization
         """
 
-        do {
-            return try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a data architect analyzing database relationships.",
-                temperature: 0.3,
-                maxTokens: 300
-            )
-        } catch {
-            return "Found \(relationships.count) relationships across the workbook."
-        }
+        let builtIn = "Found \(relationships.count) relationships across the workbook:\n" + summary
+        return await ai.ask(prompt, system: "You are a data architect analyzing database relationships.",
+                            temperature: 0.3, maxTokens: 300) { builtIn }.labeled
     }
 }
 

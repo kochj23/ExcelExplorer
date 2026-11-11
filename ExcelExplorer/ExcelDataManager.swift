@@ -94,7 +94,7 @@ class ExcelDataManager: ObservableObject {
             }
 
             // Move to final location
-            try FileManager.default.replaceItemAt(url, withItemAt: tempURL)
+            _ = try FileManager.default.replaceItemAt(url, withItemAt: tempURL)
 
             isDirty = false
 

@@ -11,9 +11,9 @@ import SwiftUI
 @main
 struct ExcelExplorerApp: App {
     @StateObject private var dataManager = ExcelDataManager()
-    @StateObject private var aiManager = AIBackendManager.shared
 
     init() {
+        _ = AppAI.shared   // one-time migration of the old AI settings/keys, before any view asks
         NovaAPIServer.shared.start()
     }
 
@@ -21,7 +21,6 @@ struct ExcelExplorerApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(dataManager)
-                .environmentObject(aiManager)
                 .frame(minWidth: 1200, minHeight: 800)
         }
         .commands {
@@ -163,7 +162,6 @@ struct ExcelExplorerApp: App {
 
         Settings {
             SettingsView()
-                .environmentObject(aiManager)
         }
     }
 }

@@ -9,6 +9,7 @@
 import Foundation
 import Speech
 import AVFoundation
+import NovaAIKit
 
 @MainActor
 class VoiceCommandHandler: NSObject, ObservableObject {
@@ -22,9 +23,10 @@ class VoiceCommandHandler: NSObject, ObservableObject {
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
     private let audioEngine = AVAudioEngine()
-    private let aiManager = AIBackendManager.shared
+    private let ai: NovaAI
 
-    override init() {
+    init(ai: NovaAI? = nil) {
+        self.ai = ai ?? AppAI.shared
         super.init()
         speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
         speechRecognizer?.delegate = self
@@ -210,46 +212,31 @@ class VoiceCommandHandler: NSObject, ObservableObject {
         - "load the file I just saved" → {"filename": null, "location": "downloads", "fileType": null}
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "Extract file information. Respond ONLY with JSON.",
-                temperature: 0.1,
-                maxTokens: 100
-            )
-
-            if let fileInfo = parseFileInfo(from: response) {
-                await searchAndOpenFile(info: fileInfo)
-            } else {
-                // Fallback to file picker
-                await MainActor.run {
-                    NotificationCenter.default.post(name: .openFile, object: nil)
-                }
-            }
-        } catch {
-            // Fallback to file picker
-            await MainActor.run {
-                NotificationCenter.default.post(name: .openFile, object: nil)
-            }
+        // Built-in: the words "downloads/desktop/documents" and a spoken file name with an extension.
+        let builtIn = Self.ruleBasedFileInfo(command)
+        let info = await ai.structured(
+            FileInfo.self,
+            NovaAIRequest(prompt: prompt, system: "Extract file information. Respond ONLY with JSON.",
+                          temperature: 0.1, maxTokens: 100),
+            validate: ExcelAIValidators.fileInfo
+        ) { builtIn }.value
+        if info.filename == nil && info.location == nil && info.fileType == nil {
+            // Nothing specific: fall back to the file picker
+            NotificationCenter.default.post(name: .openFile, object: nil)
+        } else {
+            await searchAndOpenFile(info: info)
         }
     }
 
-    private func parseFileInfo(from jsonString: String) -> FileInfo? {
-        guard let jsonStart = jsonString.firstIndex(of: "{"),
-              let jsonEnd = jsonString.lastIndex(of: "}") else {
-            return nil
+    /// Keyword extraction used when AI is off or its reply is rejected.
+    nonisolated static func ruleBasedFileInfo(_ command: String) -> FileInfo {
+        let c = command.lowercased()
+        let location = ["downloads", "desktop", "documents"].first { c.contains($0) }
+        let name = command.split(separator: " ").map(String.init).first { w in
+            ["xlsx", "xls", "csv"].contains((w as NSString).pathExtension.lowercased())
         }
-
-        let jsonSubstring = jsonString[jsonStart...jsonEnd]
-        let jsonData = Data(jsonSubstring.utf8)
-
-        do {
-            let decoder = JSONDecoder()
-            return try decoder.decode(FileInfo.self, from: jsonData)
-        } catch {
-            print("Error parsing file info: \(error)")
-            return nil
-        }
+        let type = name.map { ($0 as NSString).pathExtension.lowercased() } ?? ["xlsx", "csv", "xls"].first { c.contains($0) }
+        return FileInfo(filename: name, location: location, fileType: type)
     }
 
     private func searchAndOpenFile(info: FileInfo) async {
@@ -350,25 +337,17 @@ class VoiceCommandHandler: NSObject, ObservableObject {
         Keep response under 50 words.
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a voice command interpreter for spreadsheet software.",
-                temperature: 0.3,
-                maxTokens: 100
-            )
-
-            await MainActor.run {
-                NotificationCenter.default.post(
-                    name: .voiceCommandAI,
-                    object: ["command": command, "interpretation": response]
-                )
-            }
-        } catch {
-            await MainActor.run {
-                self.error = "Could not interpret command: \(error.localizedDescription)"
-            }
+        let result = await ai.ask(prompt, system: "You are a voice command interpreter for spreadsheet software.",
+                                  temperature: 0.3, maxTokens: 100,
+                                  validate: ExcelAIValidators.shortText(maxCharacters: 400)) { "" }
+        guard result.isAI else {
+            self.error = "Command not recognised: \"\(command)\". Try one of: \(Self.quickCommands.prefix(4).joined(separator: ", "))."
+            return
         }
+        NotificationCenter.default.post(
+            name: .voiceCommandAI,
+            object: ["command": command, "interpretation": result.value]
+        )
     }
 
     // MARK: - Quick Commands

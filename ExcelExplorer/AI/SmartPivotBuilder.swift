@@ -7,14 +7,21 @@
 //
 
 import Foundation
+import NovaAIKit
 
 @MainActor
 class SmartPivotBuilder: ObservableObject {
     @Published var pivotTables: [PivotTable] = []
     @Published var isBuilding: Bool = false
     @Published var error: String?
+    /// Where the last pivot spec came from ("AI · …" / "Built-in …").
+    @Published var lastSource: NovaAISource?
 
-    private let aiManager = AIBackendManager.shared
+    private let ai: NovaAI
+
+    init(ai: NovaAI? = nil) {
+        self.ai = ai ?? AppAI.shared
+    }
 
     // MARK: - Build Pivot Table from Natural Language
     func buildPivotTable(query: String, sheet: SheetData) async -> PivotTable? {
@@ -23,7 +30,7 @@ class SmartPivotBuilder: ObservableObject {
 
         // Use AI to parse the query
         guard let spec = await parsePivotQuery(query: query, sheet: sheet) else {
-            error = "Could not parse pivot table query"
+            error = "Could not build a pivot table: the sheet needs at least one text column and one numeric column"
             return nil
         }
 
@@ -62,34 +69,20 @@ class SmartPivotBuilder: ObservableObject {
         - "Average price by category and month" → rows: [category], columns: [month], values: [price: average]
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a data analyst parsing pivot table requests. Respond ONLY with valid JSON.",
-                temperature: 0.2,
-                maxTokens: 500
-            )
-
-            return try parsePivotSpec(from: response)
-        } catch {
-            print("Error parsing pivot query: \(error)")
-            return nil
-        }
-    }
-
-    // MARK: - Parse JSON Response
-    private func parsePivotSpec(from jsonString: String) throws -> PivotSpec? {
-        // Extract JSON from response
-        guard let jsonStart = jsonString.firstIndex(of: "{"),
-              let jsonEnd = jsonString.lastIndex(of: "}") else {
-            return nil
-        }
-
-        let jsonSubstring = jsonString[jsonStart...jsonEnd]
-        let jsonData = Data(jsonSubstring.utf8)
-
-        let decoder = JSONDecoder()
-        return try decoder.decode(PivotSpec.self, from: jsonData)
+        let builtIn = BuiltInAnalysis.pivotSpec(query: query, sheet: sheet)
+        let validatePivot = ExcelAIValidators.pivot(headers: sheet.headers)
+        let result = await ai.structured(
+            PivotSpec?.self,
+            NovaAIRequest(prompt: prompt,
+                          system: "You are a data analyst parsing pivot table requests. Respond ONLY with valid JSON.",
+                          temperature: 0.2, maxTokens: 500),
+            validate: { spec in
+                guard let spec else { throw NovaAIValidationError("no pivot specification") }
+                return try validatePivot(spec)
+            }
+        ) { builtIn }
+        lastSource = result.source
+        return result.value
     }
 
     // MARK: - Create Pivot Table
@@ -98,9 +91,6 @@ class SmartPivotBuilder: ObservableObject {
 
         // Get column indices
         let rowIndices = spec.rowDimensions.compactMap { dim in
-            sheet.headers.firstIndex(of: dim)
-        }
-        let colIndices = spec.columnDimensions.compactMap { dim in
             sheet.headers.firstIndex(of: dim)
         }
         let valueIndices = spec.values.compactMap { val -> (Int, AggregationType)? in

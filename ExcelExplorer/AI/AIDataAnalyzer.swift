@@ -6,13 +6,20 @@
 //
 
 import Foundation
+import NovaAIKit
 
 @MainActor
 class AIDataAnalyzer: ObservableObject {
-    private let aiManager = AIBackendManager.shared
+    /// Defaults to the app's AI; tests inject an offline instance.
+    private let ai: NovaAI
+
+    init(ai: NovaAI? = nil) {
+        self.ai = ai ?? AppAI.shared
+    }
 
     // MARK: - Main Query Interface
-    func queryData(_ query: String, sheet: SheetData) async throws -> String {
+    func queryData(_ query: String, sheet: SheetData) async -> NovaAIResult<String> {
+        let builtIn = BuiltInAnalysis.answer(query, sheet: sheet)
         let context = PromptBuilder.buildDataContext(sheet: sheet)
 
         let prompt = """
@@ -45,18 +52,15 @@ class AIDataAnalyzer: ObservableObject {
         Provide insights, not instructions.
         """
 
-        let response = try await aiManager.generate(
-            prompt: prompt,
-            systemPrompt: "You are an expert data analyst in Excel Explorer. Provide insights and analysis, never code or commands. You analyze data and provide direct answers.",
-            temperature: 0.3,
-            maxTokens: 2000
-        )
+        let response = await ai.ask(prompt, system: "You are an expert data analyst in Excel Explorer. Provide insights and analysis, never code or commands. You analyze data and provide direct answers.",
+                            temperature: 0.3, maxTokens: 2000) { builtIn }
 
         return response
     }
 
     // MARK: - Specific Analysis Functions
-    func summarizeSheet(_ sheet: SheetData) async throws -> String {
+    func summarizeSheet(_ sheet: SheetData) async -> NovaAIResult<String> {
+        let builtIn = BuiltInAnalysis.summary(sheet)
         let context = PromptBuilder.buildDataContext(sheet: sheet)
 
         let prompt = """
@@ -77,15 +81,12 @@ class AIDataAnalyzer: ObservableObject {
         - NO Python, SQL, or programming references
         """
 
-        return try await aiManager.generate(
-            prompt: prompt,
-            systemPrompt: "You are an expert data analyst in Excel Explorer. Provide insights and analysis directly. Never suggest code or commands.",
-            temperature: 0.3,
-            maxTokens: 1500
-        )
+        return await ai.ask(prompt, system: "You are an expert data analyst in Excel Explorer. Provide insights and analysis directly. Never suggest code or commands.",
+                            temperature: 0.3, maxTokens: 1500) { builtIn }
     }
 
-    func findPatterns(_ sheet: SheetData) async throws -> String {
+    func findPatterns(_ sheet: SheetData) async -> NovaAIResult<String> {
+        let builtIn = BuiltInAnalysis.patterns(sheet)
         let context = PromptBuilder.buildDataContext(sheet: sheet)
 
         let prompt = """
@@ -106,15 +107,12 @@ class AIDataAnalyzer: ObservableObject {
         - Be direct and actionable
         """
 
-        return try await aiManager.generate(
-            prompt: prompt,
-            systemPrompt: "You are an expert data scientist in Excel Explorer. Provide findings and patterns directly. Never suggest code or programming methods.",
-            temperature: 0.3,
-            maxTokens: 2000
-        )
+        return await ai.ask(prompt, system: "You are an expert data scientist in Excel Explorer. Provide findings and patterns directly. Never suggest code or programming methods.",
+                            temperature: 0.3, maxTokens: 2000) { builtIn }
     }
 
-    func predictValues(_ sheet: SheetData, targetColumn: String? = nil) async throws -> String {
+    func predictValues(_ sheet: SheetData, targetColumn: String? = nil) async -> NovaAIResult<String> {
+        let builtIn = BuiltInAnalysis.predictions(sheet, target: targetColumn)
         let context = PromptBuilder.buildDataContext(sheet: sheet)
 
         let prompt = """
@@ -137,15 +135,12 @@ class AIDataAnalyzer: ObservableObject {
         - Reference the actual data patterns you observed
         """
 
-        return try await aiManager.generate(
-            prompt: prompt,
-            systemPrompt: "You are an expert in data forecasting in Excel Explorer. Provide actual predictions and insights, never code or technical methods.",
-            temperature: 0.4,
-            maxTokens: 2000
-        )
+        return await ai.ask(prompt, system: "You are an expert in data forecasting in Excel Explorer. Provide actual predictions and insights, never code or technical methods.",
+                            temperature: 0.4, maxTokens: 2000) { builtIn }
     }
 
-    func suggestChart(_ sheet: SheetData) async throws -> ChartSuggestion {
+    func suggestChart(_ sheet: SheetData) async -> NovaAIResult<ChartSuggestion> {
+        let builtIn = BuiltInAnalysis.chartSuggestion(sheet)
         let context = PromptBuilder.buildDataContext(sheet: sheet)
 
         // Identify numeric columns
@@ -195,21 +190,23 @@ class AIDataAnalyzer: ObservableObject {
         - Y: Use "count" to show frequency distribution
         """
 
-        let response = try await aiManager.generate(
-            prompt: prompt,
-            systemPrompt: "You are a data visualization expert. Choose compatible columns. Y-axis must be numeric. Respond ONLY with JSON.",
-            temperature: 0.2,
-            maxTokens: 500
-        )
-
-        return try parseChartSuggestion(response)
+        let headers = sheet.headers
+        let numeric = BuiltInAnalysis.numericColumns(sheet).map(\.name)
+        return await ai.structured(
+            ChartSuggestion.self,
+            NovaAIRequest(prompt: prompt,
+                          system: "You are a data visualization expert. Choose compatible columns. Y-axis must be numeric. Respond ONLY with JSON.",
+                          temperature: 0.2, maxTokens: 500),
+            validate: ExcelAIValidators.chart(headers: headers, numeric: numeric)
+        ) { builtIn }
     }
 
-    func explainColumn(_ sheet: SheetData, columnIndex: Int) async throws -> String {
+    func explainColumn(_ sheet: SheetData, columnIndex: Int) async throws -> NovaAIResult<String> {
         guard columnIndex >= 0 && columnIndex < sheet.columnCount else {
             throw AnalysisError.invalidColumn
         }
 
+        let builtIn = BuiltInAnalysis.explainColumn(sheet, columnIndex: columnIndex)
         let columnName = sheet.headers[columnIndex]
         let sampleValues = sheet.cells.prefix(20).map { $0[columnIndex].displayValue }
 
@@ -226,27 +223,8 @@ class AIDataAnalyzer: ObservableObject {
         4. Data quality observations
         """
 
-        return try await aiManager.generate(
-            prompt: prompt,
-            systemPrompt: "You are a data analyst explaining spreadsheet columns.",
-            temperature: 0.3,
-            maxTokens: 1000
-        )
-    }
-
-    // MARK: - Helper Functions
-    private func parseChartSuggestion(_ jsonString: String) throws -> ChartSuggestion {
-        // Extract JSON from response (in case there's extra text)
-        guard let jsonStart = jsonString.firstIndex(of: "{"),
-              let jsonEnd = jsonString.lastIndex(of: "}") else {
-            throw AnalysisError.invalidResponse
-        }
-
-        let jsonSubstring = jsonString[jsonStart...jsonEnd]
-        let jsonData = Data(jsonSubstring.utf8)
-
-        let decoder = JSONDecoder()
-        return try decoder.decode(ChartSuggestion.self, from: jsonData)
+        return await ai.ask(prompt, system: "You are a data analyst explaining spreadsheet columns.",
+                            temperature: 0.3, maxTokens: 1000) { builtIn }
     }
 }
 

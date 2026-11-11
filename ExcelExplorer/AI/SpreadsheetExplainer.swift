@@ -7,13 +7,20 @@
 //
 
 import Foundation
+import NovaAIKit
 
 @MainActor
 class SpreadsheetExplainer: ObservableObject {
     @Published var isProcessing = false
     @Published var lastExplanation: String?
+    /// Where the last insights came from.
+    @Published var lastInsightsSource: NovaAISource?
 
-    private let aiManager = AIBackendManager.shared
+    private let ai: NovaAI
+
+    init(ai: NovaAI? = nil) {
+        self.ai = ai ?? AppAI.shared
+    }
 
     /// Generate comprehensive explanation of spreadsheet
     func explainSpreadsheet(workbook: WorkbookData) async -> String {
@@ -40,18 +47,11 @@ class SpreadsheetExplainer: ObservableObject {
         Be concise but comprehensive.
         """
 
-        do {
-            let explanation = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a data analyst expert at explaining spreadsheets clearly.",
-                temperature: 0.4,
-                maxTokens: 1000
-            )
-            lastExplanation = explanation
-            return explanation
-        } catch {
-            return "Failed to generate explanation: \(error.localizedDescription)"
-        }
+        let builtIn = BuiltInAnalysis.workbookOverview(workbook)
+        let explanation = await ai.ask(prompt, system: "You are a data analyst expert at explaining spreadsheets clearly.",
+                                       temperature: 0.4, maxTokens: 1000) { builtIn }.labeled
+        lastExplanation = explanation
+        return explanation
     }
 
     /// Find insights in data
@@ -80,18 +80,22 @@ class SpreadsheetExplainer: ObservableObject {
         [{"insight": "description", "importance": "high|medium|low", "evidence": "supporting data"}]
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a data scientist finding valuable insights.",
-                temperature: 0.5,
-                maxTokens: 800
-            )
+        let builtIn = Self.builtInInsights(sheet)
+        let result = await ai.structured(
+            [InsightJSON].self,
+            NovaAIRequest(prompt: prompt, system: "You are a data scientist finding valuable insights.",
+                          temperature: 0.5, maxTokens: 800),
+            validate: ExcelAIValidators.insights
+        ) { builtIn }
+        lastInsightsSource = result.source
+        return result.value.map { Insight(insight: $0.insight, importance: $0.importance ?? "medium", evidence: $0.evidence ?? "") }
+    }
 
-            return parseInsights(from: response)
-        } catch {
-            return [Insight(insight: "Failed to analyze: \(error.localizedDescription)", importance: "low", evidence: "")]
-        }
+    /// Built-in insights: patterns and data-quality findings from the sheet's statistics.
+    static func builtInInsights(_ sheet: SheetData) -> [InsightJSON] {
+        let lines = NovaAIText.listItems(BuiltInAnalysis.patterns(sheet)).filter { !$0.hasSuffix(":") }
+            + NovaAIText.listItems(BuiltInAnalysis.dataQuality(sheet)).filter { !$0.hasSuffix(":") && !$0.hasSuffix(": 0") }
+        return lines.prefix(10).map { InsightJSON(insight: $0, importance: "medium", evidence: "Built-in statistics") }
     }
 
     /// Generate executive summary report
@@ -114,17 +118,10 @@ class SpreadsheetExplainer: ObservableObject {
         Format as professional business report.
         """
 
-        do {
-            let report = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You write clear, professional business reports.",
-                temperature: 0.4,
-                maxTokens: 1200
-            )
-            return report
-        } catch {
-            return "Failed to generate report: \(error.localizedDescription)"
-        }
+        let builtIn = "Executive summary (built-in)\n\n" + BuiltInAnalysis.workbookOverview(workbook)
+            + (workbook.sheets.first.map { "\n\n" + BuiltInAnalysis.dataQuality($0) } ?? "")
+        return await ai.ask(prompt, system: "You write clear, professional business reports.",
+                            temperature: 0.4, maxTokens: 1200) { builtIn }.labeled
     }
 
     private func generateDataOverview(workbook: WorkbookData) -> String {
@@ -153,24 +150,6 @@ class SpreadsheetExplainer: ObservableObject {
         }
 
         return sample
-    }
-
-    private func parseInsights(from response: String) -> [Insight] {
-        // Try to parse JSON
-        guard let data = response.data(using: .utf8),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [[String: String]] else {
-            // Fallback: parse as plain text
-            return [Insight(insight: response, importance: "medium", evidence: "")]
-        }
-
-        return json.compactMap { dict in
-            guard let insight = dict["insight"] else { return nil }
-            return Insight(
-                insight: insight,
-                importance: dict["importance"] ?? "medium",
-                evidence: dict["evidence"] ?? ""
-            )
-        }
     }
 }
 

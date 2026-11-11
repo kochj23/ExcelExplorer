@@ -8,6 +8,7 @@
 
 import Foundation
 import NaturalLanguage
+import NovaAIKit
 
 @MainActor
 class SentimentAnalyzer: ObservableObject {
@@ -15,7 +16,11 @@ class SentimentAnalyzer: ObservableObject {
     @Published var isAnalyzing: Bool = false
     @Published var error: String?
 
-    private let aiManager = AIBackendManager.shared
+    private let ai: NovaAI
+
+    init(ai: NovaAI? = nil) {
+        self.ai = ai ?? AppAI.shared
+    }
 
     // MARK: - Analyze Text Column
     func analyzeTextColumn(
@@ -59,7 +64,7 @@ class SentimentAnalyzer: ObservableObject {
         )
 
         // Extract key themes using AI
-        let themes = await extractThemes(texts: texts)
+        let themes = await extractThemes(texts: texts, sentiments: sentiments)
 
         // Generate summary
         let summary = await generateSummary(
@@ -108,7 +113,7 @@ class SentimentAnalyzer: ObservableObject {
     }
 
     // MARK: - Extract Themes
-    private func extractThemes(texts: [String]) async -> [Theme] {
+    private func extractThemes(texts: [String], sentiments: [Sentiment]) async -> [Theme] {
         // Sample a subset for AI analysis
         let sample = texts.prefix(50).joined(separator: "\n")
 
@@ -126,39 +131,40 @@ class SentimentAnalyzer: ObservableObject {
         Sentiment values: positive, negative, or neutral
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are analyzing customer feedback. Respond ONLY with valid JSON.",
-                temperature: 0.3,
-                maxTokens: 500
-            )
-
-            return parseThemes(from: response)
-        } catch {
-            print("Error extracting themes: \(error)")
-            return []
-        }
+        let builtIn = Self.keywordThemes(texts: texts, sentiments: sentiments)
+        return await ai.structured(
+            [Theme].self,
+            NovaAIRequest(prompt: prompt,
+                          system: "You are analyzing customer feedback. Respond ONLY with valid JSON.",
+                          temperature: 0.3, maxTokens: 500),
+            validate: ExcelAIValidators.themes(total: texts.count)
+        ) { builtIn }.value
     }
 
-    // MARK: - Parse Themes
-    private func parseThemes(from jsonString: String) -> [Theme] {
-        // Extract JSON from response
-        guard let jsonStart = jsonString.firstIndex(of: "["),
-              let jsonEnd = jsonString.lastIndex(of: "]") else {
-            return []
+    /// Built-in themes: the five most frequent meaningful words, each with the majority sentiment of the
+    /// entries that mention it.
+    nonisolated static func keywordThemes(texts: [String], sentiments: [Sentiment]) -> [Theme] {
+        let stop: Set<String> = ["this", "that", "with", "have", "from", "they", "were", "been", "very", "just", "about",
+                                 "would", "there", "their", "what", "when", "your", "more", "some", "will", "also",
+                                 "than", "them", "only", "into", "much", "after", "really", "because", "could"]
+        var counts: [String: Int] = [:]
+        var tone: [String: [Sentiment]] = [:]
+        for (i, text) in texts.enumerated() {
+            let words = Set(text.lowercased().components(separatedBy: CharacterSet.letters.inverted).filter { $0.count >= 4 && !stop.contains($0) })
+            for w in words {
+                counts[w, default: 0] += 1
+                if i < sentiments.count { tone[w, default: []].append(sentiments[i]) }
+            }
         }
-
-        let jsonSubstring = jsonString[jsonStart...jsonEnd]
-        let jsonData = Data(jsonSubstring.utf8)
-
-        do {
-            let decoder = JSONDecoder()
-            return try decoder.decode([Theme].self, from: jsonData)
-        } catch {
-            print("Error parsing themes: \(error)")
-            return []
-        }
+        return counts.filter { $0.value >= 2 }
+            .sorted { $0.value > $1.value || ($0.value == $1.value && $0.key < $1.key) }
+            .prefix(5)
+            .map { word, count in
+                let t = tone[word] ?? []
+                let pos = t.filter { $0 == .positive }.count, neg = t.filter { $0 == .negative }.count
+                return Theme(name: word.capitalized, count: count,
+                             sentiment: pos > neg ? "positive" : (neg > pos ? "negative" : "neutral"))
+            }
     }
 
     // MARK: - Generate Summary
@@ -190,17 +196,10 @@ class SentimentAnalyzer: ObservableObject {
         Provide a 2-3 sentence executive summary of the customer sentiment.
         """
 
-        do {
-            return try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are analyzing customer sentiment data.",
-                temperature: 0.3,
-                maxTokens: 200
-            )
-        } catch {
-            let dominant = distribution.positive > distribution.negative ? "positive" : (distribution.negative > distribution.positive ? "negative" : "neutral")
-            return "Analysis of \(texts.count) entries shows predominantly \(dominant) sentiment (\(String(format: "%.1f%%", (dominant == "positive" ? distribution.positive : (dominant == "negative" ? distribution.negative : distribution.neutral)) * 100)))."
-        }
+        let dominant = distribution.positive > distribution.negative ? "positive" : (distribution.negative > distribution.positive ? "negative" : "neutral")
+        let builtIn = "Analysis of \(texts.count) entries shows predominantly \(dominant) sentiment (\(String(format: "%.1f%%", (dominant == "positive" ? distribution.positive : (dominant == "negative" ? distribution.negative : distribution.neutral)) * 100)))."
+        return await ai.ask(prompt, system: "You are analyzing customer sentiment data.",
+                            temperature: 0.3, maxTokens: 200) { builtIn }.labeled
     }
 
     // MARK: - Export Sentiment Column

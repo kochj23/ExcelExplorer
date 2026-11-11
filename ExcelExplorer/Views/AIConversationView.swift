@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import NovaAIKit
 
 struct AIConversationView: View {
     @EnvironmentObject var dataManager: ExcelDataManager
-    @ObservedObject var aiManager = AIBackendManager.shared
     @StateObject private var analyzer = AIDataAnalyzer()
+    @StateObject private var explainer = SpreadsheetExplainer()
+    @StateObject private var formulaBuilder = NaturalLanguageFormula()
     @StateObject private var imageService = ImageGenerationService()
     @StateObject private var chartGenerator = ChartImageGenerator()
 
@@ -32,26 +34,8 @@ struct AIConversationView: View {
                             .font(.headline)
                     }
 
-                    // AI Status
-                    HStack(spacing: 8) {
-                        if aiManager.isOllamaAvailable || aiManager.isMLXAvailable ||
-                           aiManager.isTinyLLMAvailable || aiManager.isTinyChatAvailable ||
-                           aiManager.isOpenWebUIAvailable {
-                            Circle()
-                                .fill(Color.green)
-                                .frame(width: 8, height: 8)
-                            Text("AI: \(aiManager.activeBackend.rawValue)")
-                                .font(.caption)
-                                .foregroundColor(.green)
-                        } else {
-                            Circle()
-                                .fill(Color.orange)
-                                .frame(width: 8, height: 8)
-                            Text("AI Not Available")
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                        }
-                    }
+                    // AI Status (click to re-check)
+                    NovaAIStatusIndicator(ai: AppAI.shared)
                 }
 
                 Spacer()
@@ -98,7 +82,7 @@ struct AIConversationView: View {
                     }
                     .padding()
                 }
-                .onChange(of: messages.count) { _ in
+                .onChange(of: messages.count) {
                     if let lastMessage = messages.last {
                         withAnimation {
                             proxy.scrollTo(lastMessage.id, anchor: .bottom)
@@ -176,6 +160,34 @@ struct AIConversationView: View {
             .background(Color(nsColor: .controlBackgroundColor))
         }
         .frame(minWidth: 300)
+        // The AI menu's commands run here, in the conversation.
+        .onReceive(NotificationCenter.default.publisher(for: .analyzeData)) { _ in
+            sendQuickQuery("Summarize this spreadsheet data in 3-4 sentences")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .explainSpreadsheet)) { _ in
+            runWorkbookCommand("Explain this spreadsheet") { await explainer.explainSpreadsheet(workbook: $0) }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .findInsights)) { _ in
+            runInsights()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .naturalLanguageFormula)) { _ in
+            inputText = "Formula: "
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .findPatterns)) { _ in
+            sendQuickQuery("Find interesting patterns and trends in this data")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .generateChart)) { _ in
+            summarizeAndVisualize()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .generateReport)) { _ in
+            runWorkbookCommand("Generate a report") { await explainer.generateReport(workbook: $0) }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .predictValues)) { _ in
+            sendQuickQuery("Based on the data trends, predict the next values")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .cleanData)) { _ in
+            sendQuickQuery("Analyze data quality: find errors, duplicates, missing values, and inconsistencies")
+        }
     }
 
     private func sendMessage() {
@@ -189,31 +201,61 @@ struct AIConversationView: View {
 
         isGenerating = true
 
-        Task {
-            do {
-                guard let sheet = dataManager.currentSheet else {
-                    let errorMessage = ChatMessage(content: "No spreadsheet is currently loaded", role: .assistant)
-                    await MainActor.run {
-                        messages.append(errorMessage)
-                        isGenerating = false
-                    }
-                    return
-                }
+        guard let sheet = dataManager.currentSheet else {
+            messages.append(ChatMessage(content: "No spreadsheet is currently loaded", role: .assistant))
+            isGenerating = false
+            return
+        }
 
-                let response = try await analyzer.queryData(query, sheet: sheet)
-
-                await MainActor.run {
-                    let assistantMessage = ChatMessage(content: response, role: .assistant)
-                    messages.append(assistantMessage)
-                    isGenerating = false
-                }
-            } catch {
-                await MainActor.run {
-                    let errorMessage = ChatMessage(content: "Error: \(error.localizedDescription)", role: .assistant)
-                    messages.append(errorMessage)
-                    isGenerating = false
-                }
+        // "Formula: <request>" → an Excel formula (validated: starts with =, balanced).
+        if query.lowercased().hasPrefix("formula:") {
+            let request = String(query.dropFirst("formula:".count)).trimmingCharacters(in: .whitespaces)
+            Task {
+                let result = await formulaBuilder.convertToFormula(request, context: sheet)
+                let text = result.success ? "\(result.formula)\n\n\(result.explanation)" : result.explanation
+                messages.append(ChatMessage(content: text, role: .assistant))
+                isGenerating = false
             }
+            return
+        }
+
+        Task {
+            let response = await analyzer.queryData(query, sheet: sheet)
+            messages.append(ChatMessage(content: response.value, role: .assistant, source: response.source.detailLabel))
+            isGenerating = false
+        }
+    }
+
+    /// Runs a whole-workbook command (explain/report) and posts the labelled result.
+    private func runWorkbookCommand(_ title: String, _ run: @escaping (WorkbookData) async -> String) {
+        guard let workbook = dataManager.workbook else {
+            messages.append(ChatMessage(content: "No spreadsheet is currently loaded", role: .assistant))
+            return
+        }
+        messages.append(ChatMessage(content: title, role: .user))
+        isGenerating = true
+        Task {
+            let text = await run(workbook)
+            messages.append(ChatMessage(content: text, role: .assistant))
+            isGenerating = false
+        }
+    }
+
+    private func runInsights() {
+        guard let sheet = dataManager.currentSheet else {
+            messages.append(ChatMessage(content: "No spreadsheet is currently loaded", role: .assistant))
+            return
+        }
+        messages.append(ChatMessage(content: "Find insights", role: .user))
+        isGenerating = true
+        Task {
+            let insights = await explainer.findInsights(sheet: sheet)
+            let text = insights.sorted { $0.importanceLevel > $1.importanceLevel }
+                .map { "• [\($0.importance)] \($0.insight)" + ($0.evidence.isEmpty ? "" : " — \($0.evidence)") }
+                .joined(separator: "\n")
+            messages.append(ChatMessage(content: "💎 Insights:\n\n\(text)", role: .assistant,
+                                        source: explainer.lastInsightsSource?.detailLabel))
+            isGenerating = false
         }
     }
 
@@ -267,91 +309,85 @@ struct AIConversationView: View {
         isGenerating = true
 
         Task {
-            do {
-                // Step 1: Generate summary
-                let summary = try await analyzer.summarizeSheet(sheet)
+            // Step 1: Generate summary
+            let summary = await analyzer.summarizeSheet(sheet)
 
-                await MainActor.run {
-                    let summaryMessage = ChatMessage(content: "📊 Data Summary:\n\n\(summary)", role: .assistant)
-                    messages.append(summaryMessage)
-                }
+            await MainActor.run {
+                let summaryMessage = ChatMessage(content: "📊 Data Summary:\n\n\(summary.value)", role: .assistant,
+                                                 source: summary.source.detailLabel)
+                messages.append(summaryMessage)
+            }
 
-                // Step 2: Suggest chart type
-                let chartSuggestion = try await analyzer.suggestChart(sheet)
+            // Step 2: Suggest chart type (validated: real columns, numeric Y)
+            let chartResult = await analyzer.suggestChart(sheet)
+            let chartSuggestion = chartResult.value
 
-                await MainActor.run {
-                    let chartMessage = ChatMessage(
-                        content: "📈 Visualization Recommendation:\n\nChart Type: \(chartSuggestion.chartType.capitalized)\nX-Axis: \(chartSuggestion.xColumn)\nY-Axis: \(chartSuggestion.yColumn)\n\nReasoning: \(chartSuggestion.reasoning)\n\nI can create this chart in the Advanced AI Features panel (⇧⌘B → Forecasting tab).",
+            await MainActor.run {
+                let chartMessage = ChatMessage(
+                    content: "📈 Visualization Recommendation:\n\nChart Type: \(chartSuggestion.chartType.capitalized)\nX-Axis: \(chartSuggestion.xColumn)\nY-Axis: \(chartSuggestion.yColumn)\n\nReasoning: \(chartSuggestion.reasoning)\n\nI can create this chart in the Advanced AI Features panel (⇧⌘B → Forecasting tab).",
+                    role: .assistant,
+                    source: chartResult.source.detailLabel
+                )
+                messages.append(chartMessage)
+            }
+
+            // Step 3: Generate data visualization using Swift Charts (readable text!)
+            await MainActor.run {
+                let statusMessage = ChatMessage(
+                    content: "🎨 Creating visualization chart...",
+                    role: .assistant
+                )
+                messages.append(statusMessage)
+            }
+
+            // Generate chart using Swift Charts (native, with readable text)
+            let chartImage = await MainActor.run {
+                chartGenerator.generateChartImage(
+                    sheet: sheet,
+                    chartType: chartSuggestion.chartType,
+                    xColumn: chartSuggestion.xColumn,
+                    yColumn: chartSuggestion.yColumn,
+                    title: "\(sheet.name) - Data Visualization"
+                )
+            }
+
+            await MainActor.run {
+                if let image = chartImage {
+                    var imageMessage = ChatMessage(
+                        content: "✅ Visualization created with readable text! Click image to save as PNG.\n\n📊 Chart shows: \(chartSuggestion.yColumn) by \(chartSuggestion.xColumn)\n💡 All text is perfectly readable (using Swift Charts, not AI generation)",
                         role: .assistant
                     )
-                    messages.append(chartMessage)
-                }
+                    imageMessage.image = image
+                    messages.append(imageMessage)
+                } else {
+                    // Get column types to help user understand
+                    let xIndex = sheet.headers.firstIndex(of: chartSuggestion.xColumn) ?? 0
+                    let yIndex = sheet.headers.firstIndex(of: chartSuggestion.yColumn) ?? 0
 
-                // Step 3: Generate data visualization using Swift Charts (readable text!)
-                await MainActor.run {
-                    let statusMessage = ChatMessage(
-                        content: "🎨 Creating visualization chart...",
+                    let xSample = sheet.rowCount > 1 ? sheet.cells[1][xIndex].displayValue : ""
+                    let ySample = sheet.rowCount > 1 ? sheet.cells[1][yIndex].displayValue : ""
+
+                    let errorMessage = ChatMessage(
+                        content: """
+                        ❌ Could not create chart with these columns:
+
+                        X-Axis: \(chartSuggestion.xColumn)
+                        Sample value: "\(xSample)"
+
+                        Y-Axis: \(chartSuggestion.yColumn)
+                        Sample value: "\(ySample)"
+
+                        Problem: The Y-axis column doesn't contain numeric data that can be charted.
+
+                        💡 Try asking: "Which columns have numeric data I can chart?"
+
+                        Or manually open Advanced AI → Forecasting tab and select a numeric column.
+                        """,
                         role: .assistant
                     )
-                    messages.append(statusMessage)
-                }
-
-                // Generate chart using Swift Charts (native, with readable text)
-                let chartImage = await MainActor.run {
-                    chartGenerator.generateChartImage(
-                        sheet: sheet,
-                        chartType: chartSuggestion.chartType,
-                        xColumn: chartSuggestion.xColumn,
-                        yColumn: chartSuggestion.yColumn,
-                        title: "\(sheet.name) - Data Visualization"
-                    )
-                }
-
-                await MainActor.run {
-                    if let image = chartImage {
-                        var imageMessage = ChatMessage(
-                            content: "✅ Visualization created with readable text! Click image to save as PNG.\n\n📊 Chart shows: \(chartSuggestion.yColumn) by \(chartSuggestion.xColumn)\n💡 All text is perfectly readable (using Swift Charts, not AI generation)",
-                            role: .assistant
-                        )
-                        imageMessage.image = image
-                        messages.append(imageMessage)
-                    } else {
-                        // Get column types to help user understand
-                        let xIndex = sheet.headers.firstIndex(of: chartSuggestion.xColumn) ?? 0
-                        let yIndex = sheet.headers.firstIndex(of: chartSuggestion.yColumn) ?? 0
-
-                        let xSample = sheet.cells[1][xIndex].displayValue
-                        let ySample = sheet.cells[1][yIndex].displayValue
-
-                        let errorMessage = ChatMessage(
-                            content: """
-                            ❌ Could not create chart with these columns:
-
-                            X-Axis: \(chartSuggestion.xColumn)
-                            Sample value: "\(xSample)"
-
-                            Y-Axis: \(chartSuggestion.yColumn)
-                            Sample value: "\(ySample)"
-
-                            Problem: The Y-axis column doesn't contain numeric data that can be charted.
-
-                            💡 Try asking: "Which columns have numeric data I can chart?"
-
-                            Or manually open Advanced AI → Forecasting tab and select a numeric column.
-                            """,
-                            role: .assistant
-                        )
-                        messages.append(errorMessage)
-                    }
-                    isGenerating = false
-                }
-
-            } catch {
-                await MainActor.run {
-                    let errorMessage = ChatMessage(content: "Error: \(error.localizedDescription)", role: .assistant)
                     messages.append(errorMessage)
-                    isGenerating = false
                 }
+                isGenerating = false
             }
         }
     }
@@ -364,6 +400,14 @@ struct ChatMessage: Identifiable {
     let role: Role
     let timestamp = Date()
     var image: NSImage? = nil
+    /// Where an assistant reply came from ("AI · Ollama (…)" / "Built-in analysis (…)"); nil for notes.
+    var source: String? = nil
+
+    init(content: String, role: Role, source: String? = nil) {
+        self.content = content
+        self.role = role
+        self.source = source
+    }
 
     enum Role {
         case user
@@ -420,9 +464,14 @@ struct MessageBubble: View {
                         .help("Click to save image")
                 }
 
-                Text(message.timestamp, style: .time)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                HStack(spacing: 6) {
+                    Text(message.timestamp, style: .time)
+                    if let source = message.source {
+                        Text("· \(source)")
+                    }
+                }
+                .font(.caption2)
+                .foregroundColor(.secondary)
             }
 
             if message.role == .assistant {

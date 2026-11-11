@@ -23,7 +23,9 @@ class ImageGenerationService: ObservableObject {
 
     // MARK: - Properties
 
-    private let aiBackend = AIBackendManager.shared
+    /// Image generation is not chat AI (not part of NovaAIKit): it keeps its own servers, read from the
+    /// same UserDefaults keys the pre-NovaAIKit AI manager used.
+    private let aiBackend = ImageBackendEndpoints()
 
     // MARK: - Image Generation
 
@@ -48,11 +50,11 @@ class ImageGenerationService: ObservableObject {
         }
 
         // Determine which backend to use (prefer ComfyUI as most reliable)
-        if aiBackend.isComfyUIAvailable {
+        if await aiBackend.isReachable(aiBackend.comfyUIServerURL, path: "/system_stats") {
             return try await generateWithComfyUI(prompt: prompt, style: style, size: size)
-        } else if aiBackend.isAutomatic1111Available {
+        } else if await aiBackend.isReachable(aiBackend.automatic1111ServerURL, path: "/sdapi/v1/sd-models") {
             return try await generateWithAutomatic1111(prompt: prompt, style: style, size: size)
-        } else if aiBackend.isSwarmUIAvailable {
+        } else if await aiBackend.isReachable(aiBackend.swarmUIServerURL, path: "/API/ListModels") {
             return try await generateWithSwarmUI(prompt: prompt, style: style, size: size)
         } else {
             throw ServiceImageGenerationError.noBackendAvailable
@@ -474,5 +476,25 @@ enum ServiceImageGenerationError: LocalizedError {
         case .notImplemented(let message):
             return message
         }
+    }
+}
+
+// MARK: - Image generation servers
+
+/// ComfyUI / Automatic1111 / SwarmUI base URLs (UserDefaults `AIBackend_*URL`, untouched by the NovaAIKit migration).
+struct ImageBackendEndpoints {
+    var defaults: UserDefaults = .standard
+
+    var comfyUIServerURL: String { defaults.string(forKey: "AIBackend_ComfyUIURL") ?? "http://localhost:8188" }
+    var automatic1111ServerURL: String { defaults.string(forKey: "AIBackend_Automatic1111URL") ?? "http://localhost:7860" }
+    var swarmUIServerURL: String { defaults.string(forKey: "AIBackend_SwarmUIURL") ?? "http://localhost:7801" }
+
+    /// HTTP 200 from `base + path` within 3 seconds.
+    func isReachable(_ base: String, path: String) async -> Bool {
+        guard let url = URL(string: base + path) else { return false }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 3
+        guard let (_, response) = try? await URLSession.shared.data(for: request) else { return false }
+        return (response as? HTTPURLResponse)?.statusCode == 200
     }
 }
